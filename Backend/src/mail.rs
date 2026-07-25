@@ -29,14 +29,14 @@ impl Mailer {
             .parse::<Mailbox>()
             .expect("MAIL_FROM must be a valid address");
 
-        println!("Mailer: Initializing with SMTP_HOST={}, SMTP_PORT={}, MAIL_FROM={:?}", host, port, from);
+        tracing::info!(host = %host, port = port, from = ?from, "Mailer: Initialized SMTP transport");
 
         let settings = MailSettings::new(host, port, username, password);
         Self::new(settings.transport(), from)
     }
 
     pub async fn send(&self, to: &str, subject: &str, body: String) -> Result<(), BoxError> {
-        println!("Mailer: Sending email to '{}' with subject '{}'...", to, subject);
+        tracing::debug!(recipient = %to, subject = %subject, "Mailer: Sending email...");
         let message = Message::builder()
             .from(self.from.clone())
             .to(to.parse()?)
@@ -45,20 +45,21 @@ impl Mailer {
             .body(body)?;
         match actix_web::rt::time::timeout(Duration::from_secs(10), self.transport.send(message)).await {
             Ok(Ok(_)) => {
-                println!("Mailer: Email to '{}' successfully sent.", to);
+                tracing::info!(recipient = %to, subject = %subject, "Mailer: Email successfully sent");
                 Ok(())
             }
             Ok(Err(err)) => {
-                eprintln!("Mailer ERROR: Failed to send email to '{}': {:?}", to, err);
+                tracing::error!(recipient = %to, subject = %subject, error = ?err, "Mailer ERROR: Failed to send email");
                 Err(err.into())
             }
             Err(_) => {
-                eprintln!("Mailer ERROR: Sending email to '{}' timed out after 10 seconds.", to);
+                tracing::error!(recipient = %to, subject = %subject, "Mailer ERROR: Sending email timed out after 10s");
                 Err("SMTP send timed out".into())
             }
         }
     }
 }
+
 
 struct MailSettings {
     host: String,

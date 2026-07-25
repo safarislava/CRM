@@ -31,15 +31,16 @@ impl Task for DeadlineDigestNotification {
     async fn done(&self) -> Result<Self::Output, BoxError> {
         let digest = DeadlineDigest::new(BurningDeadlines::new(self.pool.clone()).items().await?);
         if digest.is_empty() {
+            tracing::debug!("Deadline digest: No burning deadlines found, skipping notification");
             return Ok(());
         }
         let body = digest.text().await?;
-        for email in RoleRecipients::new(self.pool.clone(), Role::Gip)
-            .items()
-            .await?
-        {
+        let recipients = RoleRecipients::new(self.pool.clone(), Role::Gip).items().await?;
+        tracing::info!(recipients_count = recipients.len(), "Deadline digest: Sending burning deadlines digest");
+        for email in recipients {
             self.mailer.send(&email, SUBJECT, body.clone()).await?;
         }
         Ok(())
     }
 }
+
