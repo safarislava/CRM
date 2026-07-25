@@ -414,8 +414,9 @@ export default function StageDetailsSidebar({
     <>
       <header className={styles.header}>
         <button
-          className={`${styles.backBtn} ${styles.mobileOnly}`}
+          className={styles.backBtn}
           onClick={() => dispatch(selectStage(null))}
+          title="Назад к списку этапов"
         >
           <ArrowLeftIcon />
         </button>
