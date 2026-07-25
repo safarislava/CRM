@@ -3,6 +3,7 @@ mod cors;
 mod db;
 mod endpoint;
 mod jwt;
+mod logger;
 mod mail;
 mod middleware;
 mod model;
@@ -10,6 +11,7 @@ mod routes;
 mod state;
 mod storage;
 
+use crate::logger::{AppLogs, RollingLogs};
 use crate::mail::Mailer;
 use crate::model::schedule::contract::scheduled::Scheduled;
 use crate::model::schedule::poll_interval::PollInterval;
@@ -28,6 +30,8 @@ use std::time::Duration;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenvy::dotenv().ok();
+    let _log_guard = RollingLogs::default_crm().attach();
+    tracing::info!("Starting DailyCRM server...");
     let pool = Arc::new(db::connect().await);
     let storage = Arc::new(Storage::from_env().await);
     let mailer = Arc::new(Mailer::from_env());
@@ -50,12 +54,13 @@ async fn main() -> std::io::Result<()> {
     let timetable = Timetable::new(vec![deadline_schedule, dispatch_schedule]);
     actix_web::rt::spawn(async move {
         if let Err(error) = timetable.run().await {
-            eprintln!("schedule stopped: {error}");
+            tracing::error!("schedule stopped: {error}");
         }
     });
     HttpServer::new(move || {
         App::new()
             .app_data(state.clone())
+            .wrap(tracing_actix_web::TracingLogger::default())
             .wrap(actix_web::middleware::Compress::default())
             .wrap(cors::rules())
             .wrap(cors::security_headers())
@@ -66,7 +71,6 @@ async fn main() -> std::io::Result<()> {
     .await
 }
 
-// TODO Админка
+// TODO Admin panel
 // TODO Frontend refactor
-// TODO Backend logger
 // TODO Backend tests

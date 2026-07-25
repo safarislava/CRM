@@ -23,3 +23,7 @@ tokio-util = { version = "0.7", features = ["io"] }
 infer = "0.19.0"
 async-trait = "0.1"
 lettre = { version = "0.11", default-features = false, features = ["builder", "smtp-transport", "tokio1-native-tls"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json", "registry"] }
+tracing-appender = "0.2"
+tracing-actix-web = "0.7"

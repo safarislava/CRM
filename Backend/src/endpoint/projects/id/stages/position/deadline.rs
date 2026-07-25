@@ -2,6 +2,8 @@ use crate::endpoint::api_error::ApiError;
 use crate::endpoint::auth_header::UserHeader;
 use crate::model::project::project::Project;
 use crate::model::project::stage::Stage;
+use crate::model::task::audit_action::AuditAction;
+use crate::model::task::audited_state_task::AuditedStateTask;
 use crate::model::task::contract::task::Task;
 use crate::model::task::project::logged_deadline_update::LoggedDeadlineUpdate;
 use crate::state::AppState;
@@ -27,9 +29,18 @@ pub async fn patch(
         .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
     let (project_id, position) = path.into_inner();
     let stage = Stage::new(Project::new(project_id), position);
-    LoggedDeadlineUpdate::new(state.pool.clone(), stage, user, body.deadline)
-        .done()
-        .await
-        .map_err(|e| ApiError::Internal(e.to_string()))?;
+    let deadline_str = body.deadline.map(|d| d.to_rfc3339());
+    AuditedStateTask::new(
+        user.clone(),
+        AuditAction::DeadlineUpdate {
+            new_deadline: deadline_str,
+        },
+        format!("{project_id}:{position}"),
+        LoggedDeadlineUpdate::new(state.pool.clone(), stage, user, body.deadline),
+    )
+    .done()
+    .await
+    .map_err(|e| ApiError::Internal(e.to_string()))?;
     Ok(HttpResponse::Ok().finish())
 }
+

@@ -20,12 +20,13 @@ impl Scheduled for Schedule {
     async fn run(&self) -> Result<(), BoxError> {
         loop {
             if let Err(error) = self.event.fired().await {
-                eprintln!("schedule event error: {error}");
+                tracing::error!(error = %error, "Schedule event trigger error");
                 continue;
             }
             if let Err(error) = self.task.done().await {
-                eprintln!("schedule task error: {error}");
+                tracing::error!(error = %error, "Schedule task execution error");
             }
         }
     }
 }
+

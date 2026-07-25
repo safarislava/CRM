@@ -33,21 +33,22 @@ impl Task for NotificationSend {
             self.notification.subject(),
             self.notification.body(),
         ) else {
-            println!("Queue: Notification has missing fields (role, subject, or body); skipped.");
+            tracing::warn!("Queue: Notification skipped due to missing required fields (role, subject, or body)");
             return Ok(());
         };
         let emails = RoleRecipients::new(self.pool.clone(), role.clone()).items().await?;
-        println!("Queue: Processing notification for role '{:?}'. Found {} recipient email(s) in DB.", role, emails.len());
+        tracing::debug!(role = ?role, count = emails.len(), "Queue: Processing notification for role");
         for email in emails {
             match self.mailer.send(&email, subject, body.clone()).await {
                 Ok(_) => {
-                    println!("Queue: Successfully dispatched email to '{}'.", email);
-                },
+                    tracing::info!(recipient = %email, "Queue: Successfully dispatched notification email");
+                }
                 Err(err) => {
-                    eprintln!("Queue ERROR: Failed to send notification email to {}: {:?}", email, err);
+                    tracing::error!(recipient = %email, error = ?err, "Queue ERROR: Failed to send notification email");
                 }
             }
         }
         Ok(())
     }
 }
+
