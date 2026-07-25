@@ -39,7 +39,7 @@ where
                     subject = %self.subject,
                     action = %self.action,
                     object = %self.object,
-                    "State change applied"
+                    "succeed"
                 );
             }
             Err(err) => {
@@ -48,7 +48,7 @@ where
                     action = %self.action,
                     object = %self.object,
                     error = %err,
-                    "State change failed"
+                    "failed"
                 );
             }
         }
