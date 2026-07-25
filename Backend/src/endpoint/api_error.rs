@@ -68,6 +68,13 @@ impl actix_web::ResponseError for ApiError {
     }
 
     fn error_response(&self) -> HttpResponse {
-        HttpResponse::build(self.status_code()).json(self.to_string())
+        let status = self.status_code();
+        if status.is_server_error() {
+            tracing::error!(status = status.as_u16(), error = %self, "HTTP Server Error");
+        } else if status.is_client_error() {
+            tracing::warn!(status = status.as_u16(), error = %self, "HTTP Client Error");
+        }
+        HttpResponse::build(status).json(self.to_string())
     }
 }
+

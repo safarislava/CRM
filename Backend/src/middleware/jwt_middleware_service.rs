@@ -36,7 +36,12 @@ where
                 request.extensions_mut().insert(User::new(id));
                 Box::pin(svc.call(request))
             }
-            None => Box::pin(async { Err(actix_web::error::ErrorUnauthorized("Unauthorized")) }),
+            None => {
+                let path = request.path().to_string();
+                tracing::warn!(path = %path, "Unauthorized access attempt: missing or invalid JWT token");
+                Box::pin(async { Err(actix_web::error::ErrorUnauthorized("Unauthorized")) })
+            }
         }
     }
 }
+
