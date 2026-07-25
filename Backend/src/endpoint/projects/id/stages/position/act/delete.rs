@@ -1,6 +1,8 @@
 use crate::endpoint::api_error::ApiError;
 use crate::endpoint::auth_header::UserHeader;
 use crate::model::project::attachment::Attachment;
+use crate::model::task::audit_action::AuditAction;
+use crate::model::task::audited_state_task::AuditedStateTask;
 use crate::model::task::contract::task::Task;
 use crate::model::task::project::logged_attachment_removal::LoggedAttachmentRemoval;
 use crate::state::AppState;
@@ -16,14 +18,20 @@ pub async fn delete(
         .user()
         .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
     let (_, _, act_id) = path.into_inner();
-    LoggedAttachmentRemoval::new(
-        state.pool.clone(),
-        state.storage.clone(),
-        Attachment::new(act_id),
-        user,
+    AuditedStateTask::new(
+        user.clone(),
+        AuditAction::ActDelete,
+        act_id,
+        LoggedAttachmentRemoval::new(
+            state.pool.clone(),
+            state.storage.clone(),
+            Attachment::new(act_id),
+            user,
+        ),
     )
     .done()
     .await
     .map_err(|_| ApiError::NotFound("Act not found".to_string()))?;
     Ok(HttpResponse::Ok().finish())
 }
+

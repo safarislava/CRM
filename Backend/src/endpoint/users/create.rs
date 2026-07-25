@@ -4,6 +4,8 @@ use crate::model::credential::raw_password::RawPassword;
 use crate::model::credential::raw_username::RawUsername;
 use crate::model::credential::valid_password::ValidPassword;
 use crate::model::credential::valid_username::ValidUsername;
+use crate::model::task::audit_action::AuditAction;
+use crate::model::task::audited_state_task::AuditedStateTask;
 use crate::model::task::contract::task::Task;
 use crate::model::task::user::invite_consumption::{InviteConsumption, InviteStatus};
 use crate::model::user::invite::InviteCode;
@@ -26,12 +28,18 @@ pub async fn create(
     let invite = InviteCode::new(body.invite_token);
     let username = ValidUsername::new(RawUsername::new(body.username.clone()));
     let password = HashedPassword::new(ValidPassword::new(RawPassword::new(body.password.clone())));
-    let result = InviteConsumption::new(
-        state.pool.clone(),
-        invite,
-        username,
-        password,
-        body.email.clone(),
+    let username_str = body.username.clone();
+    let result = AuditedStateTask::new(
+        "anonymous",
+        AuditAction::UserCreate,
+        username_str,
+        InviteConsumption::new(
+            state.pool.clone(),
+            invite,
+            username,
+            password,
+            body.email.clone(),
+        ),
     )
     .done()
     .await?;
