@@ -16,7 +16,9 @@ export default function App() {
   const theme = useSelector((s: RootState) => s.ui.theme)
   const [refresh] = useRefreshMutation()
 
-  useEffect(() => { refresh() }, [])
+  useEffect(() => {
+    refresh()
+  }, [refresh])
 
   useEffect(() => {
     const root = document.documentElement

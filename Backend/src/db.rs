@@ -3,18 +3,47 @@ use sqlx::postgres::PgPoolOptions;
 use std::env;
 use std::time::Duration;
 
-pub async fn connect() -> PgPool {
+pub async fn pool() -> PgPool {
+    let pool = initial_pool().await;
+    accept_migrations(&pool).await;
+    if user_count(&pool).await == 0 {
+        generate_default_user(&pool).await;
+    }
+    pool
+}
+
+async fn initial_pool() -> PgPool {
     let url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let pool = PgPoolOptions::new()
+    PgPoolOptions::new()
         .max_connections(100)
         .min_connections(10)
         .acquire_timeout(Duration::from_secs(3))
         .connect(&url)
         .await
-        .expect("Failed to connect to database");
+        .expect("Failed to connect to database")
+}
+
+async fn accept_migrations(pool: &PgPool) {
     sqlx::migrate!("./migrations")
-        .run(&pool)
+        .run(pool)
         .await
-        .expect("Failed to migrate the database");
-    pool
+        .expect("Failed to migrate the database")
+}
+
+async fn user_count(pool: &PgPool) -> i64 {
+    sqlx::query_scalar("SELECT COUNT(*) FROM users")
+        .fetch_one(pool)
+        .await
+        .expect("Failed to get user count")
+}
+
+async fn generate_default_user(pool: &PgPool) {
+    let hashed = bcrypt::hash("admin123", bcrypt::DEFAULT_COST)
+        .expect("Failed to hash default password");
+    sqlx::query("INSERT INTO users (username, password_hash) VALUES ($1, $2)")
+        .bind("admin")
+        .bind(&hashed)
+        .execute(pool)
+        .await
+        .expect("Failed to insert default admin user");
 }
