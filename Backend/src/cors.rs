@@ -22,4 +22,6 @@ pub fn security_headers() -> DefaultHeaders {
         .add(("X-Content-Type-Options", "nosniff"))
         .add(("X-Frame-Options", "DENY"))
         .add(("Referrer-Policy", "strict-origin-when-cross-origin"))
+        .add(("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0"))
+        .add(("Pragma", "no-cache"))
 }

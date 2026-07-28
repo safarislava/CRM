@@ -14,6 +14,9 @@ const baseQuery = fetchBaseQuery({
   prepareHeaders: (headers, { getState }) => {
     const token = (getState() as { auth: { accessToken: string | null } }).auth.accessToken
     if (token) headers.set('Authorization', `Bearer ${token}`)
+    headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    headers.set('Pragma', 'no-cache')
+    headers.set('Expires', '0')
     return headers
   },
 })
@@ -51,38 +54,43 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
     }
 
     isRefreshing = true
-    const result = await baseQuery(args, api, extraOptions)
-    isRefreshing = false
-
-    if (!result.error) {
-      const { access_token } = result.data as { access_token: string }
-      api.dispatch(setAccessToken(access_token))
-      onRefreshed(access_token)
-    } else {
-      api.dispatch(logout())
-      onRefreshed(null)
+    try {
+      const result = await baseQuery(args, api, extraOptions)
+      if (!result.error) {
+        const { access_token } = result.data as { access_token: string }
+        api.dispatch(setAccessToken(access_token))
+        onRefreshed(access_token)
+      } else {
+        api.dispatch(logout())
+        onRefreshed(null)
+      }
+      return result
+    } finally {
+      isRefreshing = false
     }
-    return result
   }
 
   let result = await baseQuery(args, api, extraOptions)
   if (result.error?.status === 401) {
     if (!isRefreshing) {
       isRefreshing = true
-      const refreshResult = await baseQuery(
-        { url: '/auth/refresh', method: 'POST' },
-        api,
-        extraOptions,
+      try {
+        const refreshResult = await baseQuery(
+          { url: '/auth/refresh', method: 'POST' },
+          api,
+          extraOptions,
       )
-      isRefreshing = false
-      if (refreshResult.data) {
-        const { access_token } = refreshResult.data as { access_token: string }
-        api.dispatch(setAccessToken(access_token))
-        onRefreshed(access_token)
-        result = await baseQuery(args, api, extraOptions)
-      } else {
-        api.dispatch(logout())
-        onRefreshed(null)
+        if (refreshResult.data) {
+          const { access_token } = refreshResult.data as { access_token: string }
+          api.dispatch(setAccessToken(access_token))
+          onRefreshed(access_token)
+          result = await baseQuery(args, api, extraOptions)
+        } else {
+          api.dispatch(logout())
+          onRefreshed(null)
+        }
+      } finally {
+        isRefreshing = false
       }
     } else {
       const newToken = await new Promise<string | null>((resolve) => {
@@ -151,12 +159,12 @@ export const crmApi = createApi({
     }),
 
     getDeadlines: builder.query<StageWithProjectTitle[], void>({
-      query: () => '/projects/deadlines',
+      query: () => `/projects/deadlines?_t=${Date.now()}`,
       providesTags: ['Deadline'],
     }),
 
     getProjects: builder.query<Project[], void>({
-      query: () => '/projects',
+      query: () => `/projects?_t=${Date.now()}`,
       providesTags: ['Project'],
     }),
     createProject: builder.mutation<void, { title: string }>({
@@ -177,7 +185,7 @@ export const crmApi = createApi({
     }),
 
     getStages: builder.query<Stage[], string>({
-      query: (projectId) => `/projects/${projectId}/stages`,
+      query: (projectId) => `/projects/${projectId}/stages?_t=${Date.now()}`,
       providesTags: (_r, _e, projectId) => [{ type: 'Stage', id: projectId }],
     }),
     appendStage: builder.mutation<void, { projectId: string; title: string }>({
