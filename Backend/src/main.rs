@@ -32,7 +32,7 @@ async fn main() -> std::io::Result<()> {
     dotenvy::dotenv().ok();
     let _log_guard = RollingLogs::default_crm().attach();
     tracing::info!("Starting DailyCRM server...");
-    let pool = Arc::new(db::connect().await);
+    let pool = Arc::new(db::pool().await);
     let storage = Arc::new(Storage::from_env().await);
     let mailer = Arc::new(Mailer::from_env());
     let state = web::Data::new(AppState {
