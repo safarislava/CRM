@@ -18,24 +18,79 @@ const baseQuery = fetchBaseQuery({
   },
 })
 
+let isRefreshing = false
+let refreshSubscribers: ((token: string | null) => void)[] = []
+
+const subscribeTokenRefresh = (cb: (token: string | null) => void) => {
+  refreshSubscribers.push(cb)
+}
+
+const onRefreshed = (token: string | null) => {
+  refreshSubscribers.forEach((cb) => cb(token))
+  refreshSubscribers = []
+}
+
 const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (
   args,
   api,
   extraOptions,
 ) => {
-  let result = await baseQuery(args, api, extraOptions)
-  if (result.error?.status === 401) {
-    const refreshResult = await baseQuery(
-      { url: '/auth/refresh', method: 'POST' },
-      api,
-      extraOptions,
-    )
-    if (refreshResult.data) {
-      const { access_token } = refreshResult.data as { access_token: string }
+  const url = typeof args === 'string' ? args : args.url
+
+  // Deduplicate all refresh requests (including concurrent initial calls)
+  if (url === '/auth/refresh') {
+    if (isRefreshing) {
+      const newToken = await new Promise<string | null>((resolve) => {
+        subscribeTokenRefresh((token) => resolve(token))
+      })
+      if (newToken) {
+        return { data: { access_token: newToken } }
+      } else {
+        return { error: { status: 401, data: { message: 'Token revoked or expired' } } }
+      }
+    }
+
+    isRefreshing = true
+    const result = await baseQuery(args, api, extraOptions)
+    isRefreshing = false
+
+    if (!result.error) {
+      const { access_token } = result.data as { access_token: string }
       api.dispatch(setAccessToken(access_token))
-      result = await baseQuery(args, api, extraOptions)
+      onRefreshed(access_token)
     } else {
       api.dispatch(logout())
+      onRefreshed(null)
+    }
+    return result
+  }
+
+  let result = await baseQuery(args, api, extraOptions)
+  if (result.error?.status === 401) {
+    if (!isRefreshing) {
+      isRefreshing = true
+      const refreshResult = await baseQuery(
+        { url: '/auth/refresh', method: 'POST' },
+        api,
+        extraOptions,
+      )
+      isRefreshing = false
+      if (refreshResult.data) {
+        const { access_token } = refreshResult.data as { access_token: string }
+        api.dispatch(setAccessToken(access_token))
+        onRefreshed(access_token)
+        result = await baseQuery(args, api, extraOptions)
+      } else {
+        api.dispatch(logout())
+        onRefreshed(null)
+      }
+    } else {
+      const newToken = await new Promise<string | null>((resolve) => {
+        subscribeTokenRefresh((token) => resolve(token))
+      })
+      if (newToken) {
+        result = await baseQuery(args, api, extraOptions)
+      }
     }
   }
   return result
