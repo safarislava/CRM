@@ -5,11 +5,13 @@ import Sidebar from './components/Sidebar/Sidebar'
 import MainPanel from './components/MainPanel/MainPanel'
 import LoginPage from './components/LoginPage/LoginPage'
 import UserPage from './components/UserPage/UserPage'
+import ErrorBoundary from './components/ui/ErrorBoundary/ErrorBoundary'
+import { ToastProvider } from './components/ui/Toast/ToastContext'
 import { useRefreshMutation } from './store/crmApi'
 import styles from './App.module.scss'
 
 export default function App() {
-  useDispatch<AppDispatch>();
+  useDispatch<AppDispatch>()
   const { accessToken, initialized } = useSelector((s: RootState) => s.auth)
   const selectedProjectId = useSelector((s: RootState) => s.ui.selectedProjectId)
   const userPageOpen = useSelector((s: RootState) => s.ui.userPageOpen)
@@ -34,13 +36,19 @@ export default function App() {
   if (!accessToken) return <LoginPage />
 
   return (
-    <div className={`${styles.app} ${(selectedProjectId || userPageOpen) ? styles.projectOpen : ''}`}>
-      <div className={styles.sidebarPane}>
-        <Sidebar />
+    <ToastProvider>
+      <div className={`${styles.app} ${selectedProjectId || userPageOpen ? styles.projectOpen : ''}`}>
+        <div className={styles.sidebarPane}>
+          <ErrorBoundary fallbackTitle="Ошибка бокового меню">
+            <Sidebar />
+          </ErrorBoundary>
+        </div>
+        <div className={styles.mainPane}>
+          <ErrorBoundary fallbackTitle="Ошибка рабочей области">
+            {userPageOpen ? <UserPage /> : <MainPanel />}
+          </ErrorBoundary>
+        </div>
       </div>
-      <div className={styles.mainPane}>
-        {userPageOpen ? <UserPage /> : <MainPanel />}
-      </div>
-    </div>
+    </ToastProvider>
   )
 }
