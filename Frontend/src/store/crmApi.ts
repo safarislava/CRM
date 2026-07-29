@@ -1,700 +1,48 @@
-import {
-  createApi,
-  fetchBaseQuery,
-  type BaseQueryFn,
-  type FetchArgs,
-  type FetchBaseQueryError,
-} from '@reduxjs/toolkit/query/react'
-import type { Project, Role, Stage, DetailedStage, StageWithProjectTitle, Attachment, Act, Comment } from '../types'
-import { setAccessToken, setInitialized, logout } from './authSlice'
+import { baseApi } from './api/baseApi'
 
-const baseQuery = fetchBaseQuery({
-  baseUrl: '/api',
-  credentials: 'include',
-  prepareHeaders: (headers, { getState }) => {
-    const token = (getState() as { auth: { accessToken: string | null } }).auth.accessToken
-    if (token) headers.set('Authorization', `Bearer ${token}`)
-    headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
-    headers.set('Pragma', 'no-cache')
-    headers.set('Expires', '0')
-    return headers
-  },
-})
+export { baseApi as crmApi } from './api/baseApi'
 
-let isRefreshing = false
-let refreshSubscribers: ((token: string | null) => void)[] = []
+export { stageFieldsApi } from './api/stageFieldsApi'
+export { stageFilesApi } from './api/stageFilesApi'
+export { stageCommentsApi } from './api/stageCommentsApi'
 
-const subscribeTokenRefresh = (cb: (token: string | null) => void) => {
-  refreshSubscribers.push(cb)
-}
-
-const onRefreshed = (token: string | null) => {
-  refreshSubscribers.forEach((cb) => cb(token))
-  refreshSubscribers = []
-}
-
-const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (
-  args,
-  api,
-  extraOptions,
-) => {
-  const url = typeof args === 'string' ? args : args.url
-
-  // Deduplicate all refresh requests (including concurrent initial calls)
-  if (url === '/auth/refresh') {
-    if (isRefreshing) {
-      const newToken = await new Promise<string | null>((resolve) => {
-        subscribeTokenRefresh((token) => resolve(token))
-      })
-      if (newToken) {
-        return { data: { access_token: newToken } }
-      } else {
-        return { error: { status: 401, data: { message: 'Token revoked or expired' } } }
-      }
-    }
-
-    isRefreshing = true
-    try {
-      const result = await baseQuery(args, api, extraOptions)
-      if (!result.error) {
-        const { access_token } = result.data as { access_token: string }
-        api.dispatch(setAccessToken(access_token))
-        onRefreshed(access_token)
-      } else {
-        api.dispatch(logout())
-        onRefreshed(null)
-      }
-      return result
-    } finally {
-      isRefreshing = false
-    }
-  }
-
-  let result = await baseQuery(args, api, extraOptions)
-  if (result.error?.status === 401) {
-    if (!isRefreshing) {
-      isRefreshing = true
-      try {
-        const refreshResult = await baseQuery(
-          { url: '/auth/refresh', method: 'POST' },
-          api,
-          extraOptions,
-      )
-        if (refreshResult.data) {
-          const { access_token } = refreshResult.data as { access_token: string }
-          api.dispatch(setAccessToken(access_token))
-          onRefreshed(access_token)
-          result = await baseQuery(args, api, extraOptions)
-        } else {
-          api.dispatch(logout())
-          onRefreshed(null)
-        }
-      } finally {
-        isRefreshing = false
-      }
-    } else {
-      const newToken = await new Promise<string | null>((resolve) => {
-        subscribeTokenRefresh((token) => resolve(token))
-      })
-      if (newToken) {
-        result = await baseQuery(args, api, extraOptions)
-      }
-    }
-  }
-  return result
-}
-
-export const crmApi = createApi({
-  reducerPath: 'crmApi',
-  baseQuery: baseQueryWithReauth,
-  tagTypes: ['Project', 'Stage', 'Deadline', 'Me', 'Attachment', 'Act', 'Comment'],
-  endpoints: (builder) => ({
-
-    register: builder.mutation<void, { username: string; password: string; invite_token: string; email: string }>({
-      query: (body) => ({ url: '/users', method: 'POST', body }),
-    }),
-    createInvite: builder.mutation<{ token: string }, void>({
-      query: () => ({ url: '/invites', method: 'POST' }),
-    }),
-
-    getMe: builder.query<{ username: string; email: string; notifications_enabled: boolean; roles: Role[] }, void>({
-      query: () => '/users/me',
-      providesTags: ['Me'],
-    }),
-    updateUsername: builder.mutation<void, { username: string }>({
-      query: (body) => ({ url: '/users/me/username', method: 'PATCH', body }),
-      invalidatesTags: ['Me'],
-    }),
-    updatePassword: builder.mutation<void, { current_password: string; new_password: string }>({
-      query: (body) => ({ url: '/users/me/password', method: 'PATCH', body }),
-    }),
-    updateEmail: builder.mutation<void, { email: string }>({
-      query: (body) => ({ url: '/users/me/email', method: 'PATCH', body }),
-      invalidatesTags: ['Me'],
-    }),
-    updateNotifications: builder.mutation<void, { enabled: boolean }>({
-      query: (body) => ({ url: '/users/me/notifications', method: 'PATCH', body }),
-      invalidatesTags: ['Me'],
-    }),
-    login: builder.mutation<{ access_token: string }, { username: string; password: string }>({
-      query: (body) => ({ url: '/auth/login', method: 'POST', body }),
-    }),
-    refresh: builder.mutation<{ access_token: string }, void>({
-      query: () => ({ url: '/auth/refresh', method: 'POST' }),
-      onQueryStarted: async (_arg, { dispatch, queryFulfilled }) => {
-        try {
-          const { data } = await queryFulfilled
-          dispatch(setAccessToken(data.access_token))
-        } catch {
-          dispatch(setInitialized())
-        }
-      },
-    }),
-    logoutApi: builder.mutation<void, void>({
-      query: () => ({ url: '/auth/logout', method: 'POST' }),
-      onQueryStarted: async (_arg, { dispatch, queryFulfilled }) => {
-        await queryFulfilled.catch(() => {})
-        dispatch(logout())
-      },
-    }),
-
-    getDeadlines: builder.query<StageWithProjectTitle[], void>({
-      query: () => `/projects/deadlines?_t=${Date.now()}`,
-      providesTags: ['Deadline'],
-    }),
-
-    getProjects: builder.query<Project[], void>({
-      query: () => `/projects?_t=${Date.now()}`,
-      providesTags: ['Project'],
-    }),
-    createProject: builder.mutation<void, { title: string }>({
-      query: (body) => ({ url: '/projects', method: 'POST', body }),
-      invalidatesTags: ['Project'],
-    }),
-    deleteProject: builder.mutation<void, string>({
-      query: (id) => ({ url: `/projects/${id}`, method: 'DELETE' }),
-      invalidatesTags: ['Project', 'Deadline'],
-    }),
-    renameProject: builder.mutation<void, { id: string; title: string }>({
-      query: ({ id, title }) => ({
-        url: `/projects/${id}/title`,
-        method: 'PATCH',
-        body: { title },
-      }),
-      invalidatesTags: ['Project'],
-    }),
-
-    getStages: builder.query<Stage[], string>({
-      query: (projectId) => `/projects/${projectId}/stages?_t=${Date.now()}`,
-      providesTags: (_r, _e, projectId) => [{ type: 'Stage', id: projectId }],
-    }),
-    appendStage: builder.mutation<void, { projectId: string; title: string }>({
-      query: ({ projectId, title }) => ({
-        url: `/projects/${projectId}/stages`,
-        method: 'POST',
-        body: { title },
-      }),
-      invalidatesTags: (_r, _e, { projectId }) => [{ type: 'Stage', id: projectId }, 'Project'],
-    }),
-    insertStage: builder.mutation<void, { projectId: string; position: number; title: string }>({
-      query: ({ projectId, position, title }) => ({
-        url: `/projects/${projectId}/stages/${position}`,
-        method: 'POST',
-        body: { title },
-      }),
-      invalidatesTags: (_r, _e, { projectId }) => [{ type: 'Stage', id: projectId }, 'Project'],
-    }),
-    deleteStage: builder.mutation<void, { projectId: string; position: number }>({
-      query: ({ projectId, position }) => ({
-        url: `/projects/${projectId}/stages/${position}`,
-        method: 'DELETE',
-      }),
-      invalidatesTags: (_r, _e, { projectId }) => [{ type: 'Stage', id: projectId }, 'Project', 'Deadline'],
-    }),
-    reorderStage: builder.mutation<void, { projectId: string; position: number; to: number }>({
-      query: ({ projectId, position, to }) => ({
-        url: `/projects/${projectId}/stages/${position}/position`,
-        method: 'PATCH',
-        body: { to },
-      }),
-      invalidatesTags: ['Stage', 'Project', 'Deadline', 'Comment', 'Act', 'Attachment'],
-    }),
-
-    getDetailedStage: builder.query<DetailedStage, { projectId: string; position: number }>({
-      query: ({ projectId, position }) => `/projects/${projectId}/stages/${position}`,
-      providesTags: (_r, _e, { projectId, position }) => [
-        { type: 'Stage' as const, id: `detail-${projectId}-${position}` },
-      ],
-    }),
-
-    updateStageTitle: builder.mutation<void, { projectId: string; position: number; title: string }>({
-      query: ({ projectId, position, title }) => ({
-        url: `/projects/${projectId}/stages/${position}/title`,
-        method: 'PATCH',
-        body: { title },
-      }),
-      invalidatesTags: (_r, _e, { projectId, position }) => [
-        { type: 'Stage' as const, id: `detail-${projectId}-${position}` },
-        { type: 'Stage' as const, id: projectId },
-        { type: 'Comment' as const, id: `${projectId}-${position}` },
-        'Project',
-      ],
-    }),
-
-    updateStageDeadline: builder.mutation<void, { projectId: string; position: number; deadline: string | null }>({
-      query: ({ projectId, position, deadline }) => ({
-        url: `/projects/${projectId}/stages/${position}/deadline`,
-        method: 'PATCH',
-        body: { deadline },
-      }),
-      invalidatesTags: (_r, _e, { projectId, position }) => [
-        { type: 'Stage' as const, id: `detail-${projectId}-${position}` },
-        { type: 'Stage' as const, id: projectId },
-        { type: 'Comment' as const, id: `${projectId}-${position}` },
-        'Project',
-        'Deadline',
-      ],
-    }),
-
-    updateAdvanceCost: builder.mutation<void, { projectId: string; position: number; cost: number | null }>({
-      query: ({ projectId, position, cost }) => ({
-        url: `/projects/${projectId}/stages/${position}/advance-cost`,
-        method: 'PATCH',
-        body: { cost },
-      }),
-      invalidatesTags: (_r, _e, { projectId, position }) => [
-        { type: 'Stage' as const, id: `detail-${projectId}-${position}` },
-        { type: 'Stage' as const, id: projectId },
-        { type: 'Comment' as const, id: `${projectId}-${position}` },
-        'Project',
-      ],
-    }),
-
-    updateFinalCost: builder.mutation<void, { projectId: string; position: number; cost: number | null }>({
-      query: ({ projectId, position, cost }) => ({
-        url: `/projects/${projectId}/stages/${position}/final-cost`,
-        method: 'PATCH',
-        body: { cost },
-      }),
-      invalidatesTags: (_r, _e, { projectId, position }) => [
-        { type: 'Stage' as const, id: `detail-${projectId}-${position}` },
-        { type: 'Stage' as const, id: projectId },
-        { type: 'Comment' as const, id: `${projectId}-${position}` },
-        'Project',
-      ],
-    }),
-
-    listAttachments: builder.query<Attachment[], { projectId: string; position: number }>({
-      query: ({ projectId, position }) => `/projects/${projectId}/stages/${position}/attachments`,
-      providesTags: (_r, _e, { projectId, position }) => [
-        { type: 'Attachment' as const, id: `${projectId}-${position}` },
-      ],
-    }),
-    uploadAttachment: builder.mutation<{ id: string }, { projectId: string; position: number; file: File }>({
-      query: ({ projectId, position, file }) => {
-        const body = new FormData()
-        body.append('file', file)
-        return { url: `/projects/${projectId}/stages/${position}/attachments`, method: 'POST', body }
-      },
-      invalidatesTags: (_r, _e, { projectId, position }) => [
-        { type: 'Attachment' as const, id: `${projectId}-${position}` },
-        { type: 'Comment' as const, id: `${projectId}-${position}` },
-      ],
-    }),
-    deleteAttachment: builder.mutation<void, { projectId: string; position: number; attachmentId: string }>({
-      query: ({ projectId, position, attachmentId }) => ({
-        url: `/projects/${projectId}/stages/${position}/attachments/${attachmentId}`,
-        method: 'DELETE',
-      }),
-      invalidatesTags: (_r, _e, { projectId, position }) => [
-        { type: 'Attachment' as const, id: `${projectId}-${position}` },
-        { type: 'Comment' as const, id: `${projectId}-${position}` },
-      ],
-    }),
-
-    updateGipConfirmed: builder.mutation<void, { projectId: string; position: number; confirmed: boolean }>({
-      query: ({ projectId, position, confirmed }) => ({
-        url: `/projects/${projectId}/stages/${position}/gip-confirmed`,
-        method: 'PATCH',
-        body: { confirmed },
-      }),
-      invalidatesTags: (_r, _e, { projectId, position }) => [
-        { type: 'Stage' as const, id: `detail-${projectId}-${position}` },
-        { type: 'Stage' as const, id: projectId },
-        { type: 'Comment' as const, id: `${projectId}-${position}` },
-        'Deadline',
-        'Project',
-      ],
-    }),
-
-    updateAdvanceConfirmed: builder.mutation<void, { projectId: string; position: number; confirmed: boolean }>({
-      query: ({ projectId, position, confirmed }) => ({
-        url: `/projects/${projectId}/stages/${position}/advance-confirmed`,
-        method: 'PATCH',
-        body: { confirmed },
-      }),
-      invalidatesTags: (_r, _e, { projectId, position }) => [
-        { type: 'Stage' as const, id: `detail-${projectId}-${position}` },
-        { type: 'Stage' as const, id: projectId },
-        { type: 'Comment' as const, id: `${projectId}-${position}` },
-        'Project',
-      ],
-    }),
-
-    updateFinalConfirmed: builder.mutation<void, { projectId: string; position: number; confirmed: boolean }>({
-      query: ({ projectId, position, confirmed }) => ({
-        url: `/projects/${projectId}/stages/${position}/final-confirmed`,
-        method: 'PATCH',
-        body: { confirmed },
-      }),
-      invalidatesTags: (_r, _e, { projectId, position }) => [
-        { type: 'Stage' as const, id: `detail-${projectId}-${position}` },
-        { type: 'Stage' as const, id: projectId },
-        { type: 'Comment' as const, id: `${projectId}-${position}` },
-        'Project',
-      ],
-    }),
-
-    listActs: builder.query<Act[], { projectId: string; position: number }>({
-      query: ({ projectId, position }) => `/projects/${projectId}/stages/${position}/act`,
-      providesTags: (_r, _e, { projectId, position }) => [
-        { type: 'Act' as const, id: `${projectId}-${position}` },
-      ],
-    }),
-
-    uploadAct: builder.mutation<void, { projectId: string; position: number; file: File }>({
-      query: ({ projectId, position, file }) => {
-        const body = new FormData()
-        body.append('file', file)
-        return { url: `/projects/${projectId}/stages/${position}/act`, method: 'POST', body }
-      },
-      invalidatesTags: (_r, _e, { projectId, position }) => [
-        { type: 'Act' as const, id: `${projectId}-${position}` },
-        { type: 'Comment' as const, id: `${projectId}-${position}` },
-        { type: 'Stage' as const, id: `detail-${projectId}-${position}` },
-        { type: 'Stage' as const, id: projectId },
-        'Project',
-      ],
-    }),
-
-    deleteAct: builder.mutation<void, { projectId: string; position: number; actId: string }>({
-      query: ({ projectId, position, actId }) => ({
-        url: `/projects/${projectId}/stages/${position}/act/${actId}`,
-        method: 'DELETE',
-      }),
-      invalidatesTags: (_r, _e, { projectId, position }) => [
-        { type: 'Act' as const, id: `${projectId}-${position}` },
-        { type: 'Comment' as const, id: `${projectId}-${position}` },
-        { type: 'Stage' as const, id: `detail-${projectId}-${position}` },
-        { type: 'Stage' as const, id: projectId },
-        'Project',
-      ],
-    }),
-
-    updateRoles: builder.mutation<void, { roles: Role[] }>({
-      query: (body) => ({ url: '/users/me/roles', method: 'PATCH', body }),
-      invalidatesTags: ['Me'],
-    }),
-
-    listComments: builder.query<Comment[], { projectId: string; position: number; before?: string }>({
-      query: ({ projectId, position, before }) =>
-        `/projects/${projectId}/stages/${position}/comments${before ? `?before=${before}` : ''}`,
-      providesTags: (_r, _e, { projectId, position }) => [
-        { type: 'Comment' as const, id: `${projectId}-${position}` },
-      ],
-    }),
-    listPinnedComments: builder.query<Comment[], { projectId: string; position: number }>({
-      query: ({ projectId, position }) =>
-        `/projects/${projectId}/stages/${position}/comments/pinned`,
-      providesTags: (_r, _e, { projectId, position }) => [
-        { type: 'Comment' as const, id: `${projectId}-${position}` },
-      ],
-    }),
-    addComment: builder.mutation<void, { projectId: string; position: number; text: string }>({
-      query: ({ projectId, position, text }) => ({
-        url: `/projects/${projectId}/stages/${position}/comments`,
-        method: 'POST',
-        body: { text },
-      }),
-      invalidatesTags: (_r, _e, { projectId, position }) => [
-        { type: 'Comment' as const, id: `${projectId}-${position}` },
-        'Project',
-      ],
-    }),
-    deleteComment: builder.mutation<void, { projectId: string; position: number; commentId: string }>({
-      query: ({ projectId, position, commentId }) => ({
-        url: `/projects/${projectId}/stages/${position}/comments/${commentId}`,
-        method: 'DELETE',
-      }),
-      invalidatesTags: (_r, _e, { projectId, position }) => [
-        { type: 'Comment' as const, id: `${projectId}-${position}` },
-      ],
-    }),
-    pinComment: builder.mutation<void, { projectId: string; position: number; commentId: string; pinned: boolean }>({
-      query: ({ projectId, position, commentId, pinned }) => ({
-        url: `/projects/${projectId}/stages/${position}/comments/${commentId}/pin`,
-        method: 'PATCH',
-        body: { pinned },
-      }),
-      invalidatesTags: (_r, _e, { projectId, position }) => [
-        { type: 'Comment' as const, id: `${projectId}-${position}` },
-      ],
-    }),
-
-    appendSubStage: builder.mutation<void, { projectId: string; parentPosition: number; title: string }>({
-      query: ({ projectId, parentPosition, title }) => ({
-        url: `/projects/${projectId}/stages/${parentPosition}/sub`,
-        method: 'POST',
-        body: { title },
-      }),
-      invalidatesTags: (_r, _e, { projectId }) => [{ type: 'Stage', id: projectId }, 'Project'],
-    }),
-    deleteSubStage: builder.mutation<void, { projectId: string; parentPosition: number; position: number }>({
-      query: ({ projectId, parentPosition, position }) => ({
-        url: `/projects/${projectId}/stages/${parentPosition}/sub/${position}`,
-        method: 'DELETE',
-      }),
-      invalidatesTags: (_r, _e, { projectId }) => [{ type: 'Stage', id: projectId }, 'Project', 'Deadline'],
-    }),
-    reorderSubStage: builder.mutation<void, { projectId: string; parentPosition: number; position: number; to: number }>({
-      query: ({ projectId, parentPosition, position, to }) => ({
-        url: `/projects/${projectId}/stages/${parentPosition}/sub/${position}/position`,
-        method: 'PATCH',
-        body: { to },
-      }),
-      invalidatesTags: ['Stage', 'Project', 'Deadline', 'Comment', 'Act', 'Attachment'],
-    }),
-    getDetailedSubStage: builder.query<DetailedStage, { projectId: string; parentPosition: number; position: number }>({
-      query: ({ projectId, parentPosition, position }) => `/projects/${projectId}/stages/${parentPosition}/sub/${position}`,
-      providesTags: (_r, _e, { projectId, parentPosition, position }) => [
-        { type: 'Stage' as const, id: `detail-${projectId}-sub-${parentPosition}-${position}` },
-      ],
-    }),
-    updateSubStageTitle: builder.mutation<void, { projectId: string; parentPosition: number; position: number; title: string }>({
-      query: ({ projectId, parentPosition, position, title }) => ({
-        url: `/projects/${projectId}/stages/${parentPosition}/sub/${position}/title`,
-        method: 'PATCH',
-        body: { title },
-      }),
-      invalidatesTags: (_r, _e, { projectId, parentPosition, position }) => [
-        { type: 'Stage' as const, id: `detail-${projectId}-sub-${parentPosition}-${position}` },
-        { type: 'Stage' as const, id: projectId },
-        { type: 'Comment' as const, id: `${projectId}-sub-${parentPosition}-${position}` },
-        'Project',
-      ],
-    }),
-    updateSubStageDeadline: builder.mutation<void, { projectId: string; parentPosition: number; position: number; deadline: string | null }>({
-      query: ({ projectId, parentPosition, position, deadline }) => ({
-        url: `/projects/${projectId}/stages/${parentPosition}/sub/${position}/deadline`,
-        method: 'PATCH',
-        body: { deadline },
-      }),
-      invalidatesTags: (_r, _e, { projectId, parentPosition, position }) => [
-        { type: 'Stage' as const, id: `detail-${projectId}-sub-${parentPosition}-${position}` },
-        { type: 'Stage' as const, id: projectId },
-        { type: 'Comment' as const, id: `${projectId}-sub-${parentPosition}-${position}` },
-        'Project',
-        'Deadline',
-      ],
-    }),
-    updateSubStageAdvanceCost: builder.mutation<void, { projectId: string; parentPosition: number; position: number; cost: number | null }>({
-      query: ({ projectId, parentPosition, position, cost }) => ({
-        url: `/projects/${projectId}/stages/${parentPosition}/sub/${position}/advance-cost`,
-        method: 'PATCH',
-        body: { cost },
-      }),
-      invalidatesTags: (_r, _e, { projectId, parentPosition, position }) => [
-        { type: 'Stage' as const, id: `detail-${projectId}-sub-${parentPosition}-${position}` },
-        { type: 'Stage' as const, id: projectId },
-        { type: 'Comment' as const, id: `${projectId}-sub-${parentPosition}-${position}` },
-        'Project',
-      ],
-    }),
-    updateSubStageFinalCost: builder.mutation<void, { projectId: string; parentPosition: number; position: number; cost: number | null }>({
-      query: ({ projectId, parentPosition, position, cost }) => ({
-        url: `/projects/${projectId}/stages/${parentPosition}/sub/${position}/final-cost`,
-        method: 'PATCH',
-        body: { cost },
-      }),
-      invalidatesTags: (_r, _e, { projectId, parentPosition, position }) => [
-        { type: 'Stage' as const, id: `detail-${projectId}-sub-${parentPosition}-${position}` },
-        { type: 'Stage' as const, id: projectId },
-        { type: 'Comment' as const, id: `${projectId}-sub-${parentPosition}-${position}` },
-        'Project',
-      ],
-    }),
-    updateSubStageGipConfirmed: builder.mutation<void, { projectId: string; parentPosition: number; position: number; confirmed: boolean }>({
-      query: ({ projectId, parentPosition, position, confirmed }) => ({
-        url: `/projects/${projectId}/stages/${parentPosition}/sub/${position}/gip-confirmed`,
-        method: 'PATCH',
-        body: { confirmed },
-      }),
-      invalidatesTags: (_r, _e, { projectId, parentPosition, position }) => [
-        { type: 'Stage' as const, id: `detail-${projectId}-sub-${parentPosition}-${position}` },
-        { type: 'Stage' as const, id: projectId },
-        { type: 'Comment' as const, id: `${projectId}-sub-${parentPosition}-${position}` },
-        'Deadline', 'Project',
-      ],
-    }),
-    updateSubStageAdvanceConfirmed: builder.mutation<void, { projectId: string; parentPosition: number; position: number; confirmed: boolean }>({
-      query: ({ projectId, parentPosition, position, confirmed }) => ({
-        url: `/projects/${projectId}/stages/${parentPosition}/sub/${position}/advance-confirmed`,
-        method: 'PATCH',
-        body: { confirmed },
-      }),
-      invalidatesTags: (_r, _e, { projectId, parentPosition, position }) => [
-        { type: 'Stage' as const, id: `detail-${projectId}-sub-${parentPosition}-${position}` },
-        { type: 'Stage' as const, id: projectId },
-        { type: 'Comment' as const, id: `${projectId}-sub-${parentPosition}-${position}` },
-        'Project',
-      ],
-    }),
-    updateSubStageFinalConfirmed: builder.mutation<void, { projectId: string; parentPosition: number; position: number; confirmed: boolean }>({
-      query: ({ projectId, parentPosition, position, confirmed }) => ({
-        url: `/projects/${projectId}/stages/${parentPosition}/sub/${position}/final-confirmed`,
-        method: 'PATCH',
-        body: { confirmed },
-      }),
-      invalidatesTags: (_r, _e, { projectId, parentPosition, position }) => [
-        { type: 'Stage' as const, id: `detail-${projectId}-sub-${parentPosition}-${position}` },
-        { type: 'Stage' as const, id: projectId },
-        { type: 'Comment' as const, id: `${projectId}-sub-${parentPosition}-${position}` },
-        'Project',
-      ],
-    }),
-    listSubStageActs: builder.query<Act[], { projectId: string; parentPosition: number; position: number }>({
-      query: ({ projectId, parentPosition, position }) => `/projects/${projectId}/stages/${parentPosition}/sub/${position}/act`,
-      providesTags: (_r, _e, { projectId, parentPosition, position }) => [
-        { type: 'Act' as const, id: `${projectId}-sub-${parentPosition}-${position}` },
-      ],
-    }),
-    uploadSubStageAct: builder.mutation<void, { projectId: string; parentPosition: number; position: number; file: File }>({
-      query: ({ projectId, parentPosition, position, file }) => {
-        const body = new FormData()
-        body.append('file', file)
-        return { url: `/projects/${projectId}/stages/${parentPosition}/sub/${position}/act`, method: 'POST', body }
-      },
-      invalidatesTags: (_r, _e, { projectId, parentPosition, position }) => [
-        { type: 'Act' as const, id: `${projectId}-sub-${parentPosition}-${position}` },
-        { type: 'Comment' as const, id: `${projectId}-sub-${parentPosition}-${position}` },
-        { type: 'Stage' as const, id: `detail-${projectId}-sub-${parentPosition}-${position}` },
-        { type: 'Stage' as const, id: projectId },
-        'Project',
-      ],
-    }),
-    deleteSubStageAct: builder.mutation<void, { projectId: string; parentPosition: number; position: number; actId: string }>({
-      query: ({ projectId, parentPosition, position, actId }) => ({
-        url: `/projects/${projectId}/stages/${parentPosition}/sub/${position}/act/${actId}`,
-        method: 'DELETE',
-      }),
-      invalidatesTags: (_r, _e, { projectId, parentPosition, position }) => [
-        { type: 'Act' as const, id: `${projectId}-sub-${parentPosition}-${position}` },
-        { type: 'Comment' as const, id: `${projectId}-sub-${parentPosition}-${position}` },
-        { type: 'Stage' as const, id: `detail-${projectId}-sub-${parentPosition}-${position}` },
-        { type: 'Stage' as const, id: projectId },
-        'Project',
-      ],
-    }),
-    listSubStageAttachments: builder.query<Attachment[], { projectId: string; parentPosition: number; position: number }>({
-      query: ({ projectId, parentPosition, position }) => `/projects/${projectId}/stages/${parentPosition}/sub/${position}/attachments`,
-      providesTags: (_r, _e, { projectId, parentPosition, position }) => [
-        { type: 'Attachment' as const, id: `${projectId}-sub-${parentPosition}-${position}` },
-      ],
-    }),
-    uploadSubStageAttachment: builder.mutation<void, { projectId: string; parentPosition: number; position: number; file: File }>({
-      query: ({ projectId, parentPosition, position, file }) => {
-        const body = new FormData()
-        body.append('file', file)
-        return { url: `/projects/${projectId}/stages/${parentPosition}/sub/${position}/attachments`, method: 'POST', body }
-      },
-      invalidatesTags: (_r, _e, { projectId, parentPosition, position }) => [
-        { type: 'Attachment' as const, id: `${projectId}-sub-${parentPosition}-${position}` },
-        { type: 'Comment' as const, id: `${projectId}-sub-${parentPosition}-${position}` },
-      ],
-    }),
-    deleteSubStageAttachment: builder.mutation<void, { projectId: string; parentPosition: number; position: number; attachmentId: string }>({
-      query: ({ projectId, parentPosition, position, attachmentId }) => ({
-        url: `/projects/${projectId}/stages/${parentPosition}/sub/${position}/attachments/${attachmentId}`,
-        method: 'DELETE',
-      }),
-      invalidatesTags: (_r, _e, { projectId, parentPosition, position }) => [
-        { type: 'Attachment' as const, id: `${projectId}-sub-${parentPosition}-${position}` },
-        { type: 'Comment' as const, id: `${projectId}-sub-${parentPosition}-${position}` },
-      ],
-    }),
-    listSubStageComments: builder.query<Comment[], { projectId: string; parentPosition: number; position: number; before?: string }>({
-      query: ({ projectId, parentPosition, position, before }) =>
-        `/projects/${projectId}/stages/${parentPosition}/sub/${position}/comments${before ? `?before=${before}` : ''}`,
-      providesTags: (_r, _e, { projectId, parentPosition, position }) => [
-        { type: 'Comment' as const, id: `${projectId}-sub-${parentPosition}-${position}` },
-      ],
-    }),
-    listPinnedSubStageComments: builder.query<Comment[], { projectId: string; parentPosition: number; position: number }>({
-      query: ({ projectId, parentPosition, position }) =>
-        `/projects/${projectId}/stages/${parentPosition}/sub/${position}/comments/pinned`,
-      providesTags: (_r, _e, { projectId, parentPosition, position }) => [
-        { type: 'Comment' as const, id: `${projectId}-sub-${parentPosition}-${position}` },
-      ],
-    }),
-    addSubStageComment: builder.mutation<void, { projectId: string; parentPosition: number; position: number; text: string }>({
-      query: ({ projectId, parentPosition, position, text }) => ({
-        url: `/projects/${projectId}/stages/${parentPosition}/sub/${position}/comments`,
-        method: 'POST',
-        body: { text },
-      }),
-      invalidatesTags: (_r, _e, { projectId, parentPosition, position }) => [
-        { type: 'Comment' as const, id: `${projectId}-sub-${parentPosition}-${position}` },
-        'Project',
-      ],
-    }),
-    deleteSubStageComment: builder.mutation<void, { projectId: string; parentPosition: number; position: number; commentId: string }>({
-      query: ({ projectId, parentPosition, position, commentId }) => ({
-        url: `/projects/${projectId}/stages/${parentPosition}/sub/${position}/comments/${commentId}`,
-        method: 'DELETE',
-      }),
-      invalidatesTags: (_r, _e, { projectId, parentPosition, position }) => [
-        { type: 'Comment' as const, id: `${projectId}-sub-${parentPosition}-${position}` },
-      ],
-    }),
-    pinSubStageComment: builder.mutation<void, { projectId: string; parentPosition: number; position: number; commentId: string; pinned: boolean }>({
-      query: ({ projectId, parentPosition, position, commentId, pinned }) => ({
-        url: `/projects/${projectId}/stages/${parentPosition}/sub/${position}/comments/${commentId}/pin`,
-        method: 'PATCH',
-        body: { pinned },
-      }),
-      invalidatesTags: (_r, _e, { projectId, parentPosition, position }) => [
-        { type: 'Comment' as const, id: `${projectId}-sub-${parentPosition}-${position}` },
-      ],
-    }),
-
-  }),
-})
-
-export const {
-  useListActsQuery,
-  useListAttachmentsQuery,
-  useUploadAttachmentMutation,
-  useDeleteAttachmentMutation,
+export {
   useRegisterMutation,
   useCreateInviteMutation,
   useLoginMutation,
+  useRefreshMutation,
+  useLogoutApiMutation,
+} from './api/authApi'
+
+export {
   useGetMeQuery,
   useUpdateUsernameMutation,
   useUpdatePasswordMutation,
   useUpdateEmailMutation,
   useUpdateNotificationsMutation,
   useUpdateRolesMutation,
-  useRefreshMutation,
-  useLogoutApiMutation,
+} from './api/usersApi'
+
+export {
   useGetDeadlinesQuery,
   useGetProjectsQuery,
   useCreateProjectMutation,
   useDeleteProjectMutation,
+  useRenameProjectMutation,
+} from './api/projectsApi'
+
+export {
   useGetStagesQuery,
   useAppendStageMutation,
   useInsertStageMutation,
   useDeleteStageMutation,
   useReorderStageMutation,
+  useAppendSubStageMutation,
+  useDeleteSubStageMutation,
+  useReorderSubStageMutation,
+} from './api/stagesApi'
+
+export {
   useGetDetailedStageQuery,
   useUpdateStageTitleMutation,
   useUpdateStageDeadlineMutation,
@@ -703,17 +51,6 @@ export const {
   useUpdateGipConfirmedMutation,
   useUpdateAdvanceConfirmedMutation,
   useUpdateFinalConfirmedMutation,
-  useUploadActMutation,
-  useDeleteActMutation,
-  useRenameProjectMutation,
-  useListCommentsQuery,
-  useListPinnedCommentsQuery,
-  useAddCommentMutation,
-  useDeleteCommentMutation,
-  usePinCommentMutation,
-  useAppendSubStageMutation,
-  useDeleteSubStageMutation,
-  useReorderSubStageMutation,
   useGetDetailedSubStageQuery,
   useUpdateSubStageTitleMutation,
   useUpdateSubStageDeadlineMutation,
@@ -722,15 +59,32 @@ export const {
   useUpdateSubStageGipConfirmedMutation,
   useUpdateSubStageAdvanceConfirmedMutation,
   useUpdateSubStageFinalConfirmedMutation,
+} from './api/stageFieldsApi'
+
+export {
+  useListAttachmentsQuery,
+  useUploadAttachmentMutation,
+  useDeleteAttachmentMutation,
+  useListActsQuery,
+  useUploadActMutation,
+  useDeleteActMutation,
   useListSubStageActsQuery,
   useUploadSubStageActMutation,
   useDeleteSubStageActMutation,
   useListSubStageAttachmentsQuery,
   useUploadSubStageAttachmentMutation,
   useDeleteSubStageAttachmentMutation,
+} from './api/stageFilesApi'
+
+export {
+  useListCommentsQuery,
+  useListPinnedCommentsQuery,
+  useAddCommentMutation,
+  useDeleteCommentMutation,
+  usePinCommentMutation,
   useListSubStageCommentsQuery,
   useListPinnedSubStageCommentsQuery,
   useAddSubStageCommentMutation,
   useDeleteSubStageCommentMutation,
   usePinSubStageCommentMutation,
-} = crmApi
+} from './api/stageCommentsApi'

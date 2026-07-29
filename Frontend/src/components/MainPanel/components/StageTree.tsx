@@ -108,8 +108,16 @@ export default function StageTree({
         return (
           <React.Fragment key={stage.position}>
             <div
+              role="button"
+              tabIndex={0}
               className={`${styles.stageItem} ${stage.completed ? styles.stageCompleted : ''} ${dragPos === stage.position ? styles.stageDragging : ''} ${dragOverPos === stage.position ? styles.stageDragOver : ''}`}
               onClick={() => dispatch(selectStage({ parentPosition: 0, position: stage.position }))}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  dispatch(selectStage({ parentPosition: 0, position: stage.position }))
+                }
+              }}
               draggable
               onDragStart={(e) => { e.stopPropagation(); setDragPos(stage.position) }}
               onDragOver={(e) => { if (dragPos !== null) { e.preventDefault(); setDragOverPos(stage.position) } }}
@@ -160,8 +168,16 @@ export default function StageTree({
                 {children.map((child) => (
                   <div
                     key={child.position}
+                    role="button"
+                    tabIndex={0}
                     className={`${styles.stageItem} ${styles.subStageItem} ${child.completed ? styles.stageCompleted : ''} ${dragSub?.parent === stage.position && dragSub?.pos === child.position ? styles.stageDragging : ''} ${dragOverSub?.parent === stage.position && dragOverSub?.pos === child.position ? styles.stageDragOver : ''}`}
                     onClick={() => dispatch(selectStage({ parentPosition: stage.position, position: child.position }))}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        dispatch(selectStage({ parentPosition: stage.position, position: child.position }))
+                      }
+                    }}
                     draggable
                     onDragStart={(e) => { e.stopPropagation(); setDragSub({ parent: stage.position, pos: child.position }) }}
                     onDragOver={(e) => { if (dragSub?.parent === stage.position) { e.preventDefault(); setDragOverSub({ parent: stage.position, pos: child.position }) } }}
