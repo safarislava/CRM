@@ -42,10 +42,20 @@ export default function SidebarItem({
   onSelect,
   onDelete,
 }: SidebarItemProps) {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      onSelect()
+    }
+  }
+
   return (
     <div
+      role="button"
+      tabIndex={0}
       className={`${styles.item} ${isSelected ? styles.active : ''}`}
       onClick={onSelect}
+      onKeyDown={handleKeyDown}
     >
       <div className={styles.avatar} style={{ background: avatarColor(project.title) }}>
         {project.title[0]?.toUpperCase()}
@@ -58,6 +68,7 @@ export default function SidebarItem({
         className={styles.itemDelete}
         onClick={onDelete}
         title="Удалить"
+        tabIndex={0}
       >
         <CloseIcon size={11} />
       </button>

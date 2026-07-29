@@ -7,6 +7,7 @@ import LoginPage from './components/LoginPage/LoginPage'
 import UserPage from './components/UserPage/UserPage'
 import ErrorBoundary from './components/ui/ErrorBoundary/ErrorBoundary'
 import { ToastProvider } from './components/ui/Toast/ToastContext'
+import { useUrlSync } from './hooks/useUrlSync'
 import { useRefreshMutation } from './store/crmApi'
 import styles from './App.module.scss'
 
@@ -17,6 +18,8 @@ export default function App() {
   const userPageOpen = useSelector((s: RootState) => s.ui.userPageOpen)
   const theme = useSelector((s: RootState) => s.ui.theme)
   const [refresh] = useRefreshMutation()
+
+  useUrlSync()
 
   useEffect(() => {
     refresh()
