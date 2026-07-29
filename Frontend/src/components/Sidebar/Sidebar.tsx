@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { AppDispatch, RootState } from '../../store'
-import { selectProject, selectStage, setUserPageOpen } from '../../store/uiSlice'
+import { selectProject, setUserPageOpen } from '../../store/uiSlice'
 import {
   useGetProjectsQuery,
   useCreateProjectMutation,
@@ -9,54 +9,9 @@ import {
   useGetDeadlinesQuery,
 } from '../../store/crmApi'
 import ConfirmDeleteModal from '../ConfirmDeleteModal/ConfirmDeleteModal'
+import DeadlineDropdown, { deadlineDiffDays } from './components/DeadlineDropdown'
+import SidebarItem from './components/SidebarItem'
 import styles from './Sidebar.module.scss'
-
-function formatUpdatedAt(iso: string): string {
-  const date = new Date(iso)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffMin = Math.floor(diffMs / 60_000)
-  if (diffMin < 1) return 'только что'
-  if (diffMin < 60) return `${diffMin} мин. назад`
-  const diffH = Math.floor(diffMin / 60)
-  if (diffH < 24) return `${diffH} ч. назад`
-  const diffD = Math.floor(diffH / 24)
-  if (diffD < 7) return `${diffD} дн. назад`
-  return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
-}
-
-const AVATAR_COLORS = [
-  '#e17076', '#7bc862', '#65aadd',
-  '#a695e7', '#ee7aae', '#faa774', '#6ec9cb',
-]
-
-const avatarColor = (title: string) =>
-  AVATAR_COLORS[title.charCodeAt(0) % AVATAR_COLORS.length]
-
-function deadlineDiffDays(iso: string) {
-  const d = new Date(iso)
-  const deadline = new Date(d.getFullYear(), d.getMonth(), d.getDate())
-  const now = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  return Math.round((deadline.getTime() - today.getTime()) / 86_400_000)
-}
-
-function formatDeadlineDate(iso: string): string {
-  const d = new Date(iso)
-  const diff = deadlineDiffDays(iso)
-  if (diff < 0) return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
-  if (diff === 0) return 'Сегодня'
-  if (diff === 1) return 'Завтра'
-  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
-}
-
-function deadlineUrgency(iso: string): 'overdue' | 'urgent' | 'soon' | 'normal' {
-  const diff = deadlineDiffDays(iso)
-  if (diff < 0) return 'overdue'
-  if (diff <= 1) return 'urgent'
-  if (diff <= 7) return 'soon'
-  return 'normal'
-}
 
 export default function Sidebar() {
   const dispatch = useDispatch<AppDispatch>()
@@ -79,8 +34,9 @@ export default function Sidebar() {
 
   const deadlineItems = useMemo(() => {
     const cutoff = Date.now() + 30 * 86_400_000
-    return allDeadlines
-      .filter((d) => !d.stage.completed && new Date(d.stage.deadline!).getTime() <= cutoff)
+    return allDeadlines.filter(
+      (d) => !d.stage.completed && new Date(d.stage.deadline!).getTime() <= cutoff,
+    )
   }, [allDeadlines])
 
   const overdueCount = useMemo(
@@ -94,7 +50,8 @@ export default function Sidebar() {
       if (
         !bellRef.current?.contains(e.target as Node) &&
         !dropdownRef.current?.contains(e.target as Node)
-      ) setDeadlinesOpen(false)
+      )
+        setDeadlinesOpen(false)
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
@@ -115,7 +72,10 @@ export default function Sidebar() {
 
   const handleCreateKey = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') submitCreate()
-    if (e.key === 'Escape') { setComposing(false); setNewTitle('') }
+    if (e.key === 'Escape') {
+      setComposing(false)
+      setNewTitle('')
+    }
   }
 
   const handleDelete = (e: React.MouseEvent, id: string, title: string) => {
@@ -165,36 +125,13 @@ export default function Sidebar() {
       </header>
 
       {deadlinesOpen && (
-        <div ref={dropdownRef} className={styles.deadlineDropdown}>
-          <div className={styles.deadlineDropdownHeader}>Ближайшие дедлайны</div>
-          {deadlineItems.length === 0 ? (
-            <div className={styles.deadlineEmpty}>Нет предстоящих дедлайнов</div>
-          ) : (
-            deadlineItems.map((item) => (
-              <button
-                key={`${item.stage.project_id}-${item.stage.position}`}
-                className={styles.deadlineItem}
-                onClick={() => {
-                  dispatch(selectProject(item.stage.project_id))
-                  dispatch(selectStage({ parentPosition: item.stage.parent_position, position: item.stage.position }))
-                  setDeadlinesOpen(false)
-                }}
-              >
-                <span
-                  className={`${styles.deadlineDate} ${styles[`deadline_${deadlineUrgency(item.stage.deadline!)}`]}`}
-                >
-                  {formatDeadlineDate(item.stage.deadline!)}
-                </span>
-                <div className={styles.deadlineInfo}>
-                  <span className={styles.deadlineProject}>{item.project_title}</span>
-                  <span className={styles.deadlineStage}>{item.stage.title}</span>
-                </div>
-              </button>
-            ))
-          )}
-        </div>
+        <DeadlineDropdown
+          dropdownRef={dropdownRef}
+          deadlineItems={deadlineItems}
+          onClose={() => setDeadlinesOpen(false)}
+          dispatch={dispatch}
+        />
       )}
-
 
       <div className={styles.searchWrap}>
         <SearchIcon />
@@ -212,38 +149,20 @@ export default function Sidebar() {
       </div>
 
       <div className={styles.list}>
-        {isLoading && (
-          <div className={styles.hint}>Загрузка…</div>
-        )}
+        {isLoading && <div className={styles.hint}>Загрузка…</div>}
         {!isLoading && filtered.length === 0 && (
           <div className={styles.hint}>
             {search ? 'Ничего не найдено' : 'Нет проектов'}
           </div>
         )}
         {filtered.map((project) => (
-          <div
+          <SidebarItem
             key={project.id}
-            className={`${styles.item} ${selectedId === project.id ? styles.active : ''}`}
-            onClick={() => dispatch(selectProject(project.id))}
-          >
-            <div
-              className={styles.avatar}
-              style={{ background: avatarColor(project.title) }}
-            >
-              {project.title[0]?.toUpperCase()}
-            </div>
-            <div className={styles.itemInfo}>
-              <span className={styles.itemTitle}>{project.title}</span>
-              <span className={styles.itemDate}>{formatUpdatedAt(project.updated_at)}</span>
-            </div>
-            <button
-              className={styles.itemDelete}
-              onClick={(e) => handleDelete(e, project.id, project.title)}
-              title="Удалить"
-            >
-              <CloseIcon size={11} />
-            </button>
-          </div>
+            project={project}
+            isSelected={selectedId === project.id}
+            onSelect={() => dispatch(selectProject(project.id))}
+            onDelete={(e) => handleDelete(e, project.id, project.title)}
+          />
         ))}
       </div>
 
@@ -256,7 +175,10 @@ export default function Sidebar() {
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               onKeyDown={handleCreateKey}
-              onBlur={() => { setComposing(false); setNewTitle('') }}
+              onBlur={() => {
+                setComposing(false)
+                setNewTitle('')
+              }}
               autoFocus
             />
             <button
@@ -269,10 +191,7 @@ export default function Sidebar() {
             </button>
           </div>
         ) : (
-          <button
-            className={styles.newProjectBtn}
-            onClick={() => setComposing(true)}
-          >
+          <button className={styles.newProjectBtn} onClick={() => setComposing(true)}>
             <ComposeIcon />
             Новый проект
           </button>
@@ -285,8 +204,8 @@ export default function Sidebar() {
 function SearchIcon() {
   return (
     <svg className={styles.searchIcon} width="16" height="16" viewBox="0 0 24 24" fill="none">
-      <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/>
-      <path d="m16.5 16.5 4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
+      <path d="m16.5 16.5 4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
     </svg>
   )
 }
@@ -294,10 +213,19 @@ function SearchIcon() {
 function ComposeIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <path d="M12 5H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"
-        stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L13 14l-4 1 1-4 8.5-8.5Z"
-        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path
+        d="M12 5H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M18.5 2.5a2.121 2.121 0 0 1 3 3L13 14l-4 1 1-4 8.5-8.5Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   )
 }
@@ -305,7 +233,7 @@ function ComposeIcon() {
 function CloseIcon({ size = 14 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <path d="M18 6 6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+      <path d="M18 6 6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
     </svg>
   )
 }
@@ -313,8 +241,14 @@ function CloseIcon({ size = 14 }: { size?: number }) {
 function BellIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      <path
+        d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
     </svg>
   )
 }
@@ -322,8 +256,8 @@ function BellIcon() {
 function ProfileIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2"/>
-      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2" />
+      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
     </svg>
   )
 }
@@ -331,9 +265,15 @@ function ProfileIcon() {
 function SendIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <line x1="22" y1="2" x2="11" y2="13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <polygon points="22 2 15 22 11 13 2 9 22 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      <line x1="22" y1="2" x2="11" y2="13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <polygon
+        points="22 2 15 22 11 13 2 9 22 2"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
     </svg>
   )
 }
-
