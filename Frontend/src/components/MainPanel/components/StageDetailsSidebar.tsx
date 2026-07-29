@@ -5,6 +5,7 @@ import type { Comment, Stage } from '../../../types'
 import { selectStage } from '../../../store/uiSlice'
 import {
   crmApi,
+  stageCommentsApi,
   useGetDetailedStageQuery,
   useGetDetailedSubStageQuery,
   useListActsQuery,
@@ -148,13 +149,13 @@ export default function StageDetailsSidebar({
     try {
       const page = isSub
         ? await dispatch(
-            crmApi.endpoints.listSubStageComments.initiate(
+            stageCommentsApi.endpoints.listSubStageComments.initiate(
               { projectId, parentPosition: selectedStage.parentPosition, position: selectedStage.position, before: oldest.id },
               { subscribe: false },
             ),
           ).unwrap()
         : await dispatch(
-            crmApi.endpoints.listComments.initiate(
+            stageCommentsApi.endpoints.listComments.initiate(
               { projectId, position: selectedStage.position, before: oldest.id },
               { subscribe: false },
             ),
