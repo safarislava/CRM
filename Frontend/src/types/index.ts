@@ -1,4 +1,4 @@
-export type Role = 'gip' | 'lawyer' | 'accountant'
+export type Role = 'gip' | 'lawyer' | 'accountant' | 'admin'
 
 export interface Project {
   id: string
