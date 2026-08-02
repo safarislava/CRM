@@ -104,6 +104,6 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
 export const baseApi = createApi({
   reducerPath: 'crmApi',
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['Project', 'Stage', 'Deadline', 'Me', 'Attachment', 'Act', 'Comment'],
+  tagTypes: ['Project', 'Stage', 'Deadline', 'Me', 'Attachment', 'Act', 'Comment', 'AdminStatistics', 'AdminUsers', 'AdminInvitations', 'AdminLogs'],
   endpoints: () => ({}),
 })

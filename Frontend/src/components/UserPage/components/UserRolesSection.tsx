@@ -23,6 +23,7 @@ export default function UserRolesSection({ currentRoles }: UserRolesSectionProps
     gip: 'ГИП',
     lawyer: 'Юрист',
     accountant: 'Бухгалтер',
+    admin: 'Администратор',
   }
 
   return (

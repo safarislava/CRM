@@ -7,4 +7,5 @@ pub enum Role {
     Gip,
     Lawyer,
     Accountant,
+    Admin,
 }

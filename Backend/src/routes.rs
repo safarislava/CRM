@@ -1,4 +1,5 @@
 use crate::endpoint;
+use crate::middleware::admin_middleware::AdminMiddleware;
 use crate::middleware::jwt_middleware::JwtMiddleware;
 use crate::middleware::login_governor::login_governor;
 use actix_governor::Governor;
@@ -29,9 +30,25 @@ pub fn configure(config: &mut web::ServiceConfig) {
                     ),
             )
             .service(
+                web::scope("/admin")
+                    .wrap(AdminMiddleware)
+                    .wrap(JwtMiddleware)
+                    .service(web::resource("/statistics").get(endpoint::admin::statistics::get))
+                    .service(web::resource("/users").get(endpoint::admin::users::list::get))
+                    .service(web::resource("/users/{user_id}/roles").patch(endpoint::admin::users::roles::patch))
+                    .service(web::resource("/users/{user_id}").delete(endpoint::admin::users::delete::delete))
+                    .service(
+                        web::resource("/invitations")
+                            .get(endpoint::admin::invitations::list::get)
+                            .post(endpoint::admin::invitations::create::post),
+                    )
+                    .service(web::resource("/invitations/{token}").delete(endpoint::admin::invitations::delete::delete))
+                    .service(web::resource("/logs").get(endpoint::admin::logs::get))
+                    .service(web::resource("/digest").post(endpoint::admin::digest::post)),
+            )
+            .service(
                 web::scope("")
                     .wrap(JwtMiddleware)
-                    .service(web::resource("/admin/digest").post(endpoint::admin::digest::post))
                     .service(web::resource("/invites").post(endpoint::invites::create::post))
                     .service(
                         web::scope("/projects")
