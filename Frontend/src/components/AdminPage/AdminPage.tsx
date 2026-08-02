@@ -16,97 +16,77 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<AdminTab>('stats')
 
   return (
-    <div className={styles.container}>
+    <div className={styles.page}>
       <header className={styles.header}>
-        <div className={styles.titleGroup}>
-          <ShieldIcon className={styles.shieldIcon} />
-          <div>
-            <h1 className={styles.title}>Панель администратора</h1>
-            <p className={styles.subtitle}>
-              Управление пользователями, ролями, приглашениями и системными логами
-            </p>
-          </div>
-        </div>
         <button
           className={styles.closeBtn}
           onClick={() => dispatch(setAdminPageOpen(false))}
-          title="Закрыть панель управления"
+          title="Назад"
         >
-          <CloseIcon />
+          <BackIcon />
         </button>
+        <h1 className={styles.title}>Панель администратора</h1>
       </header>
 
-      <nav className={styles.tabs}>
-        <button
-          className={`${styles.tabBtn} ${activeTab === 'stats' ? styles.tabActive : ''}`}
-          onClick={() => setActiveTab('stats')}
-        >
-          <BarChartIcon />
-          Обзор
-        </button>
+      <div className={styles.content}>
+        <nav className={styles.tabs}>
+          <button
+            className={`${styles.tabBtn} ${activeTab === 'stats' ? styles.tabActive : ''}`}
+            onClick={() => setActiveTab('stats')}
+          >
+            <BarChartIcon />
+            Обзор
+          </button>
 
-        <button
-          className={`${styles.tabBtn} ${activeTab === 'users' ? styles.tabActive : ''}`}
-          onClick={() => setActiveTab('users')}
-        >
-          <UsersGroupIcon />
-          Пользователи
-        </button>
+          <button
+            className={`${styles.tabBtn} ${activeTab === 'users' ? styles.tabActive : ''}`}
+            onClick={() => setActiveTab('users')}
+          >
+            <UsersGroupIcon />
+            Пользователи
+          </button>
 
-        <button
-          className={`${styles.tabBtn} ${activeTab === 'invitations' ? styles.tabActive : ''}`}
-          onClick={() => setActiveTab('invitations')}
-        >
-          <MailIcon />
-          Приглашения
-        </button>
+          <button
+            className={`${styles.tabBtn} ${activeTab === 'invitations' ? styles.tabActive : ''}`}
+            onClick={() => setActiveTab('invitations')}
+          >
+            <MailIcon />
+            Приглашения
+          </button>
 
-        <button
-          className={`${styles.tabBtn} ${activeTab === 'logs' ? styles.tabActive : ''}`}
-          onClick={() => setActiveTab('logs')}
-        >
-          <TerminalIcon />
-          Логи системы
-        </button>
+          <button
+            className={`${styles.tabBtn} ${activeTab === 'logs' ? styles.tabActive : ''}`}
+            onClick={() => setActiveTab('logs')}
+          >
+            <TerminalIcon />
+            Логи системы
+          </button>
 
-        <button
-          className={`${styles.tabBtn} ${activeTab === 'actions' ? styles.tabActive : ''}`}
-          onClick={() => setActiveTab('actions')}
-        >
-          <ZapIcon />
-          Действия
-        </button>
-      </nav>
+          <button
+            className={`${styles.tabBtn} ${activeTab === 'actions' ? styles.tabActive : ''}`}
+            onClick={() => setActiveTab('actions')}
+          >
+            <ZapIcon />
+            Действия
+          </button>
+        </nav>
 
-      <main className={styles.contentPane}>
-        {activeTab === 'stats' && <AdminStatisticsSection />}
-        {activeTab === 'users' && <AdminUsersSection />}
-        {activeTab === 'invitations' && <AdminInvitationsSection />}
-        {activeTab === 'logs' && <AdminLogsSection />}
-        {activeTab === 'actions' && <AdminActionsSection />}
-      </main>
+        <main style={{ marginTop: 16 }}>
+          {activeTab === 'stats' && <AdminStatisticsSection />}
+          {activeTab === 'users' && <AdminUsersSection />}
+          {activeTab === 'invitations' && <AdminInvitationsSection />}
+          {activeTab === 'logs' && <AdminLogsSection />}
+          {activeTab === 'actions' && <AdminActionsSection />}
+        </main>
+      </div>
     </div>
   )
 }
 
-function ShieldIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} width="32" height="32" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
-
-function CloseIcon() {
+function BackIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <path d="M18 6 6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }
