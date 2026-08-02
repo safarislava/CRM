@@ -5,6 +5,7 @@ import Sidebar from './components/Sidebar/Sidebar'
 import MainPanel from './components/MainPanel/MainPanel'
 import LoginPage from './components/LoginPage/LoginPage'
 import UserPage from './components/UserPage/UserPage'
+import AdminPage from './components/AdminPage/AdminPage'
 import ErrorBoundary from './components/ui/ErrorBoundary/ErrorBoundary'
 import { ToastProvider } from './components/ui/Toast/ToastContext'
 import { useUrlSync } from './hooks/useUrlSync'
@@ -16,6 +17,7 @@ export default function App() {
   const { accessToken, initialized } = useSelector((s: RootState) => s.auth)
   const selectedProjectId = useSelector((s: RootState) => s.ui.selectedProjectId)
   const userPageOpen = useSelector((s: RootState) => s.ui.userPageOpen)
+  const adminPageOpen = useSelector((s: RootState) => s.ui.adminPageOpen)
   const theme = useSelector((s: RootState) => s.ui.theme)
   const [refresh] = useRefreshMutation()
 
@@ -40,7 +42,7 @@ export default function App() {
 
   return (
     <ToastProvider>
-      <div className={`${styles.app} ${selectedProjectId || userPageOpen ? styles.projectOpen : ''}`}>
+      <div className={`${styles.app} ${selectedProjectId || userPageOpen || adminPageOpen ? styles.projectOpen : ''}`}>
         <div className={styles.sidebarPane}>
           <ErrorBoundary fallbackTitle="Ошибка бокового меню">
             <Sidebar />
@@ -48,7 +50,13 @@ export default function App() {
         </div>
         <div className={styles.mainPane}>
           <ErrorBoundary fallbackTitle="Ошибка рабочей области">
-            {userPageOpen ? <UserPage /> : <MainPanel />}
+            {adminPageOpen ? (
+              <AdminPage />
+            ) : userPageOpen ? (
+              <UserPage />
+            ) : (
+              <MainPanel />
+            )}
           </ErrorBoundary>
         </div>
       </div>

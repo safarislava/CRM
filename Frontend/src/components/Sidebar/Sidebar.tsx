@@ -1,13 +1,14 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { AppDispatch, RootState } from '../../store'
-import { selectProject, setUserPageOpen } from '../../store/uiSlice'
+import { selectProject, setUserPageOpen, setAdminPageOpen } from '../../store/uiSlice'
 import {
   useGetProjectsQuery,
   useCreateProjectMutation,
   useDeleteProjectMutation,
   useGetDeadlinesQuery,
 } from '../../store/crmApi'
+import { useGetMeQuery } from '../../store/api/usersApi'
 import ConfirmDeleteModal from '../ConfirmDeleteModal/ConfirmDeleteModal'
 import DeadlineDropdown, { deadlineDiffDays } from './components/DeadlineDropdown'
 import SidebarItem from './components/SidebarItem'
@@ -16,6 +17,7 @@ import styles from './Sidebar.module.scss'
 export default function Sidebar() {
   const dispatch = useDispatch<AppDispatch>()
   const selectedId = useSelector((s: RootState) => s.ui.selectedProjectId)
+  const adminPageOpen = useSelector((s: RootState) => s.ui.adminPageOpen)
 
   const [search, setSearch] = useState('')
   const [composing, setComposing] = useState(false)
@@ -23,6 +25,9 @@ export default function Sidebar() {
   const [deadlinesOpen, setDeadlinesOpen] = useState(false)
   const bellRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  const { data: me } = useGetMeQuery()
+  const isAdmin = me?.roles?.includes('admin')
 
   const { data: projects = [], isLoading } = useGetProjectsQuery()
   const [createProject, { isLoading: creating }] = useCreateProjectMutation()
@@ -103,6 +108,15 @@ export default function Sidebar() {
       <header className={styles.header}>
         <span className={styles.logo}>DailyCRM</span>
         <div className={styles.headerActions}>
+          {isAdmin && (
+            <button
+              className={`${styles.composeBtn} ${adminPageOpen ? styles.bellActive : ''}`}
+              onClick={() => dispatch(setAdminPageOpen(true))}
+              title="Админ-панель"
+            >
+              <ShieldIcon />
+            </button>
+          )}
           <button
             ref={bellRef}
             className={`${styles.bellBtn} ${deadlinesOpen ? styles.bellActive : ''}`}
@@ -277,3 +291,18 @@ function SendIcon() {
     </svg>
   )
 }
+
+function ShieldIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+

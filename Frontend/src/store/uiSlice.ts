@@ -11,6 +11,7 @@ interface UiState {
   selectedProjectId: string | null
   selectedStage: SelectedStage | null
   userPageOpen: boolean
+  adminPageOpen: boolean
   theme: Theme
 }
 
@@ -20,6 +21,7 @@ const uiSlice = createSlice({
     selectedProjectId: null,
     selectedStage: null,
     userPageOpen: false,
+    adminPageOpen: false,
     theme: (localStorage.getItem('theme') as Theme | null) ?? 'auto',
   } as UiState,
   reducers: {
@@ -27,12 +29,24 @@ const uiSlice = createSlice({
       state.selectedProjectId = action.payload
       state.selectedStage = null
       state.userPageOpen = false
+      state.adminPageOpen = false
     },
     selectStage(state, action: PayloadAction<SelectedStage | null>) {
       state.selectedStage = action.payload
     },
     setUserPageOpen(state, action: PayloadAction<boolean>) {
       state.userPageOpen = action.payload
+      if (action.payload) {
+        state.adminPageOpen = false
+      }
+    },
+    setAdminPageOpen(state, action: PayloadAction<boolean>) {
+      state.adminPageOpen = action.payload
+      if (action.payload) {
+        state.userPageOpen = false
+        state.selectedProjectId = null
+        state.selectedStage = null
+      }
     },
     setTheme(state, action: PayloadAction<Theme>) {
       state.theme = action.payload
@@ -41,5 +55,5 @@ const uiSlice = createSlice({
   },
 })
 
-export const { selectProject, selectStage, setUserPageOpen, setTheme } = uiSlice.actions
+export const { selectProject, selectStage, setUserPageOpen, setAdminPageOpen, setTheme } = uiSlice.actions
 export default uiSlice.reducer
