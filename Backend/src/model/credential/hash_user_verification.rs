@@ -1,5 +1,5 @@
 use crate::model::credential::contract::hash::Hash;
-use crate::model::credential::contract::hash_verification::{UserVerification, VerificationError};
+use crate::model::user::contract::user_verification::{UserVerification, VerificationError};
 use crate::model::credential::contract::password::Password;
 
 pub struct HashUserVerification {

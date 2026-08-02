@@ -1,4 +1,4 @@
-use crate::model::credential::contract::hash_verification::{UserVerification, VerificationError};
+use crate::model::user::contract::user_verification::{UserVerification, VerificationError};
 use crate::model::user::contract::protected_user::ProtectedUser;
 use crate::model::user::user::User;
 

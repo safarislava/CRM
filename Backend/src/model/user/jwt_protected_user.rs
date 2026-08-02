@@ -1,4 +1,4 @@
-use crate::model::credential::contract::hash_verification::VerificationError;
+use crate::model::user::contract::user_verification::VerificationError;
 use crate::model::session::refresh_token::RefreshToken;
 use crate::model::task::contract::task::Task;
 use crate::model::task::session::user_id_receipt::UserIdReceipt;

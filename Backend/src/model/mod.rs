@@ -1,3 +1,4 @@
+pub mod admin;
 pub mod credential;
 pub mod notification;
 pub mod project;

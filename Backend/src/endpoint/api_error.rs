@@ -1,5 +1,5 @@
 use crate::common::BoxError;
-use crate::model::credential::contract::hash_verification::VerificationError;
+use crate::model::user::contract::user_verification::VerificationError;
 use crate::model::credential::contract::password::PasswordError;
 use crate::model::credential::contract::username::UsernameError;
 use actix_web::HttpResponse;
