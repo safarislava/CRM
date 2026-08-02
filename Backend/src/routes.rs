@@ -31,8 +31,8 @@ pub fn configure(config: &mut web::ServiceConfig) {
             )
             .service(
                 web::scope("/admin")
-                    .wrap(JwtMiddleware)
                     .wrap(AdminMiddleware)
+                    .wrap(JwtMiddleware)
                     .service(web::resource("/statistics").get(endpoint::admin::statistics::get))
                     .service(web::resource("/users").get(endpoint::admin::users::list::get))
                     .service(web::resource("/users/{user_id}/roles").patch(endpoint::admin::users::roles::patch))
