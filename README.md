@@ -8,8 +8,6 @@
 
 **Frontend** — React 18, TypeScript, Redux Toolkit, Vite, SCSS
 
-**Тестирование** — k6 (нагрузочные тесты)
-
 **Инфраструктура** — Docker Compose, Caddy (reverse proxy + TLS), GitHub Container Registry
 
 ---
@@ -96,32 +94,6 @@ test/
 ---
 
 ## Локальный запуск
-
-### Зависимости
-
-- Rust (edition 2024)
-- Node.js 18+
-- Docker + Docker Compose
-- [sqlx-cli](https://github.com/launchbadge/sqlx): `cargo install sqlx-cli --no-default-features --features rustls,postgres`
-
-## Нагрузочное тестирование
-
-Для проверки производительности используется [k6](https://k6.io/). Сценарий теста находится в `test/load_test.js`.
-
-Запуск тестов локально (требуется установленный k6):
-```bash
-k6 run test/load_test.js
 ```
-
----
-
-## Деплой (Production)
-
-Образы собираются и публикуются в GitHub Container Registry через CI.
-
-```bash
-# На сервере: создать .env с prod-значениями
-docker compose -f docker-compose.prod.yml up -d
+docker compose  up -d
 ```
-
-Caddy автоматически получает TLS-сертификат для `DOMAIN` через Let's Encrypt и проксирует весь трафик на frontend-контейнер.
