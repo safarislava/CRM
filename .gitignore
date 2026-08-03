@@ -1,9 +1,8 @@
 /target
 .idea
 .DS_Store
-.env
 /Frontend/dist/
 /Frontend/node_modules/
 /Backend/target/
-/.env.example
+.env.example
 logs
