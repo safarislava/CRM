@@ -1,7 +1,7 @@
 use crate::endpoint::api_error::ApiError;
 use crate::model::project::attachment::Attachment;
-use crate::model::task::contract::task::Task;
-use crate::model::task::project::attachment_download::AttachmentDownload;
+use crate::model::contract::task::Task;
+use crate::model::project::attachment_download::AttachmentDownload;
 use crate::state::AppState;
 use actix_web::{HttpResponse, web};
 use uuid::Uuid;
@@ -16,7 +16,7 @@ pub async fn get(
         state.storage.clone(),
         Attachment::new(attachment_id),
     )
-    .done()
+    .perform()
     .await
     .map_err(|_| ApiError::NotFound("Attachment not found".to_string()))?;
     Ok(HttpResponse::Ok()

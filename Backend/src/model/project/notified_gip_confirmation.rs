@@ -2,7 +2,7 @@ use crate::common::BoxError;
 use crate::model::contract::task::Task;
 use crate::model::project::gip_confirmation::GipConfirmation;
 use crate::model::project::stage::Stage;
-use crate::model::task::notification::notification_enqueue::NotificationEnqueue;
+use crate::model::notification::notification_enqueue::NotificationEnqueue;
 use sqlx::PgPool;
 use std::sync::Arc;
 
@@ -32,7 +32,7 @@ impl Task for NotifiedGipConfirmation {
             .await?;
         if self.confirmed {
             NotificationEnqueue::new(self.pool.clone(), self.stage.clone(), "work_complete")
-                .done()
+                .perform()
                 .await?;
         }
         Ok(())

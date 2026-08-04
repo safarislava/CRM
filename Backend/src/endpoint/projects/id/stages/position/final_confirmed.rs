@@ -2,8 +2,8 @@ use crate::endpoint::api_error::ApiError;
 use crate::endpoint::auth_header::UserHeader;
 use crate::model::project::project::Project;
 use crate::model::project::stage::Stage;
-use crate::model::task::contract::task::Task;
-use crate::model::task::project::logged_final_payment_confirmation::LoggedFinalPaymentConfirmation;
+use crate::model::contract::task::Task;
+use crate::model::project::logged_final_payment_confirmation::LoggedFinalPaymentConfirmation;
 use crate::state::AppState;
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, web};
@@ -27,7 +27,7 @@ pub async fn patch(
     let (project_id, position) = path.into_inner();
     let stage = Stage::new(Project::new(project_id), position);
     LoggedFinalPaymentConfirmation::new(state.pool.clone(), stage, user, body.confirmed)
-        .done()
+        .perform()
         .await
         .map_err(|e| ApiError::Internal(e.to_string()))?;
     Ok(HttpResponse::Ok().finish())

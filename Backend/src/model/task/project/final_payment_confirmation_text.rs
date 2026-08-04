@@ -1,1 +1,0 @@
-pub use crate::model::project::final_payment_confirmation_text::*;

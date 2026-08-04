@@ -1,10 +1,10 @@
 use crate::endpoint::api_error::ApiError;
 use crate::endpoint::auth_header::UserHeader;
 use crate::model::project::attachment::Attachment;
-use crate::model::task::audit_action::AuditAction;
-use crate::model::task::audited_state_task::AuditedStateTask;
-use crate::model::task::contract::task::Task;
-use crate::model::task::project::logged_attachment_removal::LoggedAttachmentRemoval;
+use crate::model::audit::AuditAction;
+use crate::model::audit::AuditedTask;
+use crate::model::contract::task::Task;
+use crate::model::project::logged_attachment_removal::LoggedAttachmentRemoval;
 use crate::state::AppState;
 use actix_web::{HttpRequest, HttpResponse, web};
 use uuid::Uuid;
@@ -18,7 +18,7 @@ pub async fn delete(
         .user()
         .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
     let (_, _, attachment_id) = path.into_inner();
-    AuditedStateTask::new(
+    AuditedTask::new(
         user.clone(),
         AuditAction::AttachmentDelete {
             filename: attachment_id.to_string(),
@@ -31,7 +31,7 @@ pub async fn delete(
             user,
         ),
     )
-    .done()
+    .perform()
     .await
     .map_err(|_| ApiError::NotFound("Attachment not found".to_string()))?;
     Ok(HttpResponse::Ok().finish())

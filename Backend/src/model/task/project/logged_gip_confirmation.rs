@@ -1,1 +1,0 @@
-pub use crate::model::project::logged_gip_confirmation::*;

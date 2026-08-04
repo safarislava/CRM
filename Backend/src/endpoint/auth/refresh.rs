@@ -3,8 +3,8 @@ use crate::endpoint::auth::session_response::SessionResponse;
 use crate::model::session::contract::jti_source::JtiSource;
 use crate::model::session::refresh_token::RefreshToken;
 use crate::model::session::signed_refresh_token::SignedRefreshToken;
-use crate::model::task::contract::task::Task;
-use crate::model::task::user::tokens_issuance::TokenIssuance;
+use crate::model::contract::task::Task;
+use crate::model::user::tokens_issuance::TokenIssuance;
 use crate::model::user::jwt_protected_user::JwtProtectedUser;
 use crate::state::AppState;
 use actix_web::{HttpRequest, HttpResponse, web};
@@ -22,7 +22,7 @@ pub async fn post(
     let refresh_token = RefreshToken::new(jti, Box::new(cookie.value().to_string()));
     let user = JwtProtectedUser::new(state.pool.clone(), refresh_token);
     let (access, refresh) = TokenIssuance::new(state.pool.clone(), Box::new(user))
-        .done()
+        .perform()
         .await
         .map_err(|e| ApiError::Internal(e.to_string()))?
         .ok_or(ApiError::Unauthorized(

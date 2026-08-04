@@ -2,8 +2,8 @@ use crate::endpoint::api_error::ApiError;
 use crate::endpoint::auth_header::UserHeader;
 use crate::model::project::project::Project;
 use crate::model::project::stage::Stage;
-use crate::model::task::contract::task::Task;
-use crate::model::task::project::comment_creation::CommentCreation;
+use crate::model::contract::task::Task;
+use crate::model::project::comment_creation::CommentCreation;
 use crate::state::AppState;
 use actix_web::{HttpRequest, HttpResponse, web};
 use serde::Deserialize;
@@ -32,7 +32,7 @@ pub async fn post(
         user,
         text,
     )
-    .done()
+    .perform()
     .await
     .map_err(|e| ApiError::Internal(e.to_string()))?;
     Ok(HttpResponse::Created().finish())

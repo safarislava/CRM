@@ -1,7 +1,7 @@
 use crate::common::BoxError;
+use crate::model::contract::task::Task;
 use crate::model::schedule::contract::event::Event;
 use crate::model::schedule::contract::scheduled::Scheduled;
-use crate::model::task::contract::task::Task;
 use std::sync::Arc;
 
 pub struct Schedule {
@@ -23,10 +23,9 @@ impl Scheduled for Schedule {
                 tracing::error!(error = %error, "Schedule event trigger error");
                 continue;
             }
-            if let Err(error) = self.task.done().await {
+            if let Err(error) = self.task.perform().await {
                 tracing::error!(error = %error, "Schedule task execution error");
             }
         }
     }
 }
-

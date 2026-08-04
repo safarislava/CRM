@@ -1,5 +1,5 @@
 use crate::common::BoxError;
-use crate::model::task::contract::task::Task;
+use crate::model::contract::task::Task;
 use crate::model::user::role::Role;
 use sqlx::PgPool;
 use std::sync::Arc;
@@ -25,7 +25,7 @@ impl UserRoleUpdate {
 impl Task for UserRoleUpdate {
     type Output = ();
 
-    async fn done(&self) -> Result<Self::Output, BoxError> {
+    async fn perform(&self) -> Result<Self::Output, BoxError> {
         let mut tx = self.pool.begin().await?;
         sqlx::query("DELETE FROM user_roles WHERE user_id = $1")
             .bind(self.target_user_id)

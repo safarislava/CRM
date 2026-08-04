@@ -1,5 +1,5 @@
 use crate::common::BoxError;
-use crate::model::task::contract::task::Task;
+use crate::model::contract::task::Task;
 use sqlx::PgPool;
 use std::sync::Arc;
 use uuid::Uuid;
@@ -19,7 +19,7 @@ impl InvitationRevocation {
 impl Task for InvitationRevocation {
     type Output = ();
 
-    async fn done(&self) -> Result<Self::Output, BoxError> {
+    async fn perform(&self) -> Result<Self::Output, BoxError> {
         sqlx::query("DELETE FROM invites WHERE token = $1")
             .bind(self.token)
             .execute(self.pool.as_ref())

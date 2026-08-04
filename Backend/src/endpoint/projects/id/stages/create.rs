@@ -1,10 +1,10 @@
 use crate::endpoint::api_error::ApiError;
 use crate::endpoint::auth_header::UserHeader;
 use crate::model::project::project::Project;
-use crate::model::task::audit_action::AuditAction;
-use crate::model::task::audited_state_task::AuditedStateTask;
-use crate::model::task::contract::task::Task;
-use crate::model::task::project::stage_appending::StageAppending;
+use crate::model::audit::AuditAction;
+use crate::model::audit::AuditedTask;
+use crate::model::contract::task::Task;
+use crate::model::project::stage_appending::StageAppending;
 use crate::state::AppState;
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, web};
@@ -27,13 +27,13 @@ pub async fn create(
         .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
     let project_id = path.into_inner();
     let title = body.title.clone();
-    AuditedStateTask::new(
+    AuditedTask::new(
         user,
         AuditAction::StageCreate,
         format!("{project_id}:{title}"),
         StageAppending::new(state.pool.clone(), Project::new(project_id), title),
     )
-    .done()
+    .perform()
     .await
     .map_err(|e| ApiError::Internal(e.to_string()))?;
     Ok(HttpResponse::Ok().finish())

@@ -3,7 +3,7 @@ use crate::model::contract::task::Task;
 use crate::model::project::act_upload::ActUpload;
 use crate::model::project::file_content::FileContent;
 use crate::model::project::stage::Stage;
-use crate::model::task::notification::notification_enqueue::NotificationEnqueue;
+use crate::model::notification::notification_enqueue::NotificationEnqueue;
 use crate::storage::Storage;
 use sqlx::PgPool;
 use std::sync::Arc;
@@ -45,7 +45,7 @@ impl Task for NotifiedActUpload {
         .perform()
         .await?;
         NotificationEnqueue::new(self.pool.clone(), self.stage.clone(), "act_uploaded")
-            .done()
+            .perform()
             .await
     }
 }

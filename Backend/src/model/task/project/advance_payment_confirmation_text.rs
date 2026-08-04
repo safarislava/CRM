@@ -1,1 +1,0 @@
-pub use crate::model::project::advance_payment_confirmation_text::*;

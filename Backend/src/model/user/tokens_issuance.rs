@@ -4,7 +4,7 @@ use crate::model::session::access_token::AccessToken;
 use crate::model::session::new_token::NewToken;
 use crate::model::session::refresh_token::{REFRESH_LIFETIME, RefreshToken};
 use crate::model::session::token_kind::TokenKind;
-use crate::model::task::session::refresh_token_submission::RefreshTokenSubmission;
+use crate::model::session::refresh_token_submission::RefreshTokenSubmission;
 use crate::model::user::contract::protected_user::ProtectedUser;
 use crate::model::user::contract::user_verification::VerificationError;
 use chrono::{Duration, Utc};
@@ -54,7 +54,7 @@ impl Task for TokenIssuance {
             )),
         );
         RefreshTokenSubmission::new(self.pool.clone(), user.id(), jti, refresh_expires_at)
-            .done()
+            .perform()
             .await?;
         Ok(Some((access_token, refresh_token)))
     }

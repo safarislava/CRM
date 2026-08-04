@@ -1,5 +1,5 @@
 use crate::common::BoxError;
-use crate::model::task::contract::task::Task;
+use crate::model::contract::task::Task;
 use crate::model::user::admin::Admin;
 use sqlx::PgPool;
 use std::sync::Arc;
@@ -25,7 +25,7 @@ impl UserDeletion {
 impl Task for UserDeletion {
     type Output = ();
 
-    async fn done(&self) -> Result<Self::Output, BoxError> {
+    async fn perform(&self) -> Result<Self::Output, BoxError> {
         if self.admin.user().id() == self.target_user_id {
             return Err(Box::new(std::io::Error::new(
                 std::io::ErrorKind::PermissionDenied,
