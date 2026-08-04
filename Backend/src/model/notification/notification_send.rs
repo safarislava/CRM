@@ -1,5 +1,5 @@
-use crate::model::contract::box_error::BoxError;
 use crate::mail::Mailer;
+use crate::model::contract::box_error::BoxError;
 use crate::model::contract::task::Task;
 use crate::model::notification::queued_notification::QueuedNotification;
 use crate::model::notification::role_recipients::RoleRecipients;
@@ -38,16 +38,21 @@ impl Task for NotificationSend {
         };
         let emails = RoleRecipients::new(self.pool.clone(), role.clone()).items().await?;
         tracing::debug!(role = ?role, count = emails.len(), "Queue: Processing notification for role");
-        for email in emails {
-            match self.mailer.send(&email, subject, body.clone()).await {
-                Ok(_) => {
-                    tracing::info!(recipient = %email, "Queue: Successfully dispatched notification email");
-                }
-                Err(err) => {
-                    tracing::error!(recipient = %email, error = ?err, "Queue ERROR: Failed to send notification email");
+        let sends = emails.iter().map(|email| {
+            let mailer = self.mailer.clone();
+            let body = body.clone();
+            async move {
+                match mailer.send(email, subject, body).await {
+                    Ok(_) => {
+                        tracing::info!(recipient = %email, "Queue: Successfully dispatched notification email");
+                    }
+                    Err(err) => {
+                        tracing::error!(recipient = %email, error = ?err, "Queue ERROR: Failed to send notification email");
+                    }
                 }
             }
-        }
+        });
+        futures_util::future::join_all(sends).await;
         Ok(())
     }
 }

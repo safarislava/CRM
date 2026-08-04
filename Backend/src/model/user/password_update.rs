@@ -26,8 +26,10 @@ impl Task for PasswordUpdate {
     type Output = ();
 
     async fn perform(&self) -> Result<(), BoxError> {
-        let user = self.protected_user.unprotected().await?;
-        let hash = self.new_password.value().await?;
+        let (user, hash) = futures_util::try_join!(
+            async { self.protected_user.unprotected().await.map_err(BoxError::from) },
+            async { self.new_password.value().await.map_err(BoxError::from) }
+        )?;
         sqlx::query("UPDATE users SET password_hash = $2 WHERE id = $1")
             .bind(user.id())
             .bind(hash)

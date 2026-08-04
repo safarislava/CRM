@@ -1,5 +1,5 @@
-use crate::model::contract::box_error::BoxError;
 use crate::mail::Mailer;
+use crate::model::contract::box_error::BoxError;
 use crate::model::contract::task::Task;
 use crate::model::notification::burning_deadlines::BurningDeadlines;
 use crate::model::notification::contract::digest::Digest;
@@ -37,9 +37,12 @@ impl Task for DeadlineDigestNotification {
         let body = digest.text().await?;
         let recipients = RoleRecipients::new(self.pool.clone(), Role::Gip).items().await?;
         tracing::info!(recipients_count = recipients.len(), "Deadline digest: Sending burning deadlines digest");
-        for email in recipients {
-            self.mailer.send(&email, SUBJECT, body.clone()).await?;
-        }
+        let sends = recipients.iter().map(|email| {
+            let mailer = self.mailer.clone();
+            let body = body.clone();
+            async move { mailer.send(email, SUBJECT, body).await }
+        });
+        futures_util::future::try_join_all(sends).await?;
         Ok(())
     }
 }
