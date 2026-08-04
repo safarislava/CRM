@@ -1,3 +1,4 @@
+pub mod admin;
 pub mod invitation_revocation;
 pub mod invitations_list;
 pub mod statistics;
