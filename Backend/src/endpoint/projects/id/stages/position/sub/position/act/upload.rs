@@ -1,5 +1,5 @@
 use crate::endpoint::api_error::ApiError;
-use crate::endpoint::auth_header::UserHeader;
+use crate::endpoint::auth_header::AuthHeader;
 use crate::model::project::file_content::FileContent;
 use crate::model::project::project::Project;
 use crate::model::project::stage::Stage;

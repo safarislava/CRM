@@ -1,4 +1,4 @@
-use crate::common::BoxError;
+use crate::model::contract::box_error::BoxError;
 use crate::model::project::contract::list::List;
 use crate::model::user::contract::username_search::UsernameSearch;
 use crate::model::user::user::User;

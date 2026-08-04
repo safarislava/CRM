@@ -1,5 +1,5 @@
 use crate::endpoint::api_error::ApiError;
-use crate::endpoint::auth_header::UserHeader;
+use crate::endpoint::auth_header::AuthHeader;
 use crate::model::credential::raw_username::RawUsername;
 use crate::model::credential::valid_username::ValidUsername;
 use crate::model::contract::task::Task;

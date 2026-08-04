@@ -1,4 +1,4 @@
-use crate::common::BoxError;
+use crate::model::contract::box_error::BoxError;
 use crate::jwt::jwt_secret;
 use crate::model::session::claims::Claims;
 use crate::model::session::contract::token::Token;

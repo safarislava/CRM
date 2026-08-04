@@ -1,4 +1,4 @@
-use crate::common::BoxError;
+use crate::model::contract::box_error::BoxError;
 use crate::model::contract::task::Task;
 use crate::model::credential::contract::hash::Hash;
 use crate::model::user::contract::protected_user::ProtectedUser;

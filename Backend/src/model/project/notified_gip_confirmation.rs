@@ -1,4 +1,4 @@
-use crate::common::BoxError;
+use crate::model::contract::box_error::BoxError;
 use crate::model::contract::task::Task;
 use crate::model::project::gip_confirmation::GipConfirmation;
 use crate::model::project::stage::Stage;

@@ -1,4 +1,4 @@
-use crate::common::BoxError;
+use crate::model::contract::box_error::BoxError;
 use crate::model::session::contract::token::Token;
 use chrono::{Duration, TimeDelta};
 use uuid::Uuid;

@@ -1,4 +1,4 @@
-use crate::common::BoxError;
+use crate::model::contract::box_error::BoxError;
 use crate::model::project::contract::json::Json;
 use crate::model::project::stage::Stage;
 use chrono::{DateTime, Utc};

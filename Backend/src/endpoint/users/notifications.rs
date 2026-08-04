@@ -1,5 +1,5 @@
 use crate::endpoint::api_error::ApiError;
-use crate::endpoint::auth_header::UserHeader;
+use crate::endpoint::auth_header::AuthHeader;
 use crate::model::contract::task::Task;
 use crate::model::user::notifications_update::NotificationsUpdate;
 use crate::state::AppState;

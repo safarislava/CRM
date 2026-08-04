@@ -1,4 +1,4 @@
-use crate::common::BoxError;
+use crate::model::contract::box_error::BoxError;
 use crate::mail::Mailer;
 use crate::model::contract::task::Task;
 use crate::model::notification::queued_notification::QueuedNotification;

@@ -1,4 +1,4 @@
-use crate::common::BoxError;
+use crate::model::contract::box_error::BoxError;
 use crate::model::contract::task::Task;
 use crate::model::project::act_upload::ActUpload;
 use crate::model::project::file_content::FileContent;

@@ -1,4 +1,4 @@
-use crate::common::BoxError;
+use crate::model::contract::box_error::BoxError;
 use crate::model::contract::value::Value;
 use sqlx::PgPool;
 use std::sync::Arc;

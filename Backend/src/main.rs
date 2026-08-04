@@ -1,4 +1,3 @@
-mod common;
 mod cors;
 mod db;
 mod endpoint;
@@ -13,16 +12,16 @@ mod storage;
 
 use crate::logger::{AppLogs, RollingLogs};
 use crate::mail::Mailer;
+use crate::model::notification::deadline_digest_notification::DeadlineDigestNotification;
+use crate::model::notification::notification_dispatch::NotificationDispatch;
 use crate::model::schedule::contract::scheduled::Scheduled;
 use crate::model::schedule::poll_interval::PollInterval;
 use crate::model::schedule::schedule::Schedule;
 use crate::model::schedule::time_of_day::TimeOfDay;
 use crate::model::schedule::timetable::Timetable;
-use crate::model::notification::deadline_digest_notification::DeadlineDigestNotification;
-use crate::model::notification::notification_dispatch::NotificationDispatch;
 use crate::state::AppState;
 use crate::storage::Storage;
-use actix_web::{App, HttpServer, web};
+use actix_web::{web, App, HttpServer};
 use chrono::NaiveTime;
 use std::sync::Arc;
 use std::time::Duration;

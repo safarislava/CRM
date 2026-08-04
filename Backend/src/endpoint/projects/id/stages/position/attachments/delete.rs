@@ -1,5 +1,5 @@
 use crate::endpoint::api_error::ApiError;
-use crate::endpoint::auth_header::UserHeader;
+use crate::endpoint::auth_header::AuthHeader;
 use crate::model::project::attachment::Attachment;
 use crate::model::audit::AuditAction;
 use crate::model::audit::AuditedTask;

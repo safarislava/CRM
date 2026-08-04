@@ -1,4 +1,4 @@
-use crate::common::BoxError;
+use crate::model::contract::box_error::BoxError;
 use crate::model::contract::value::Value;
 use crate::model::project::attachment::Attachment;
 use crate::model::project::project::Project;

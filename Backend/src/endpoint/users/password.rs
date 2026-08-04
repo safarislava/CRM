@@ -1,5 +1,5 @@
 use crate::endpoint::api_error::ApiError;
-use crate::endpoint::auth_header::UserHeader;
+use crate::endpoint::auth_header::AuthHeader;
 use crate::model::credential::db_hash::DbHash;
 use crate::model::credential::hash_user_verification::HashUserVerification;
 use crate::model::credential::hashed_password::HashedPassword;
