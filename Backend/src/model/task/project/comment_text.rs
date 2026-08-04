@@ -1,3 +1,1 @@
-pub trait CommentText {
-    fn text(&self) -> String;
-}
+pub use crate::model::contract::comment_text::CommentText;

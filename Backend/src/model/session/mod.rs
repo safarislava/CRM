@@ -7,3 +7,4 @@ pub mod refresh_token;
 pub mod signed_access_token;
 pub mod signed_refresh_token;
 pub mod token_kind;
+pub mod user_id_receipt;
