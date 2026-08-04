@@ -1,4 +1,3 @@
-pub mod admin;
 pub mod contract;
 pub mod credential;
 pub mod notification;
