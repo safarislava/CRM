@@ -31,13 +31,11 @@ impl Task for UserRoleUpdate {
             .bind(self.target_user_id)
             .execute(&mut *tx)
             .await?;
-        for role in &self.roles {
-            sqlx::query("INSERT INTO user_roles (user_id, role) VALUES ($1, $2)")
-                .bind(self.target_user_id)
-                .bind(role)
-                .execute(&mut *tx)
-                .await?;
-        }
+        sqlx::query("INSERT INTO user_roles (user_id, role) SELECT $1, UNNEST($2)")
+            .bind(self.target_user_id)
+            .bind(&self.roles as &[Role])
+            .execute(&mut *tx)
+            .await?;
         tx.commit().await?;
         Ok(())
     }
