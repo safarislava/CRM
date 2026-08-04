@@ -1,10 +1,10 @@
 use crate::endpoint::api_error::ApiError;
-use crate::endpoint::auth_header::UserHeader;
+use crate::endpoint::auth_header::AuthHeader;
 use crate::model::project::comment::Comment;
-use crate::model::task::audit_action::AuditAction;
-use crate::model::task::audited_state_task::AuditedStateTask;
-use crate::model::task::contract::task::Task;
-use crate::model::task::project::comment_removal::CommentRemoval;
+use crate::model::audit::AuditAction;
+use crate::model::audit::AuditedTask;
+use crate::model::contract::task::Task;
+use crate::model::project::comment_removal::CommentRemoval;
 use crate::state::AppState;
 use actix_web::{HttpRequest, HttpResponse, web};
 use uuid::Uuid;
@@ -18,13 +18,13 @@ pub async fn delete(
         .user()
         .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
     let (_, _, comment_id) = path.into_inner();
-    AuditedStateTask::new(
+    AuditedTask::new(
         user,
         AuditAction::CommentDelete,
         comment_id,
         CommentRemoval::new(state.pool.clone(), Comment::new(comment_id)),
     )
-    .done()
+    .perform()
     .await
     .map_err(|_| ApiError::NotFound("Comment not found".to_string()))?;
     Ok(HttpResponse::Ok().finish())

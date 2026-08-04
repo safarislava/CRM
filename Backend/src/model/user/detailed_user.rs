@@ -1,4 +1,4 @@
-use crate::common::BoxError;
+use crate::model::contract::box_error::BoxError;
 use crate::model::project::contract::json::Json;
 use crate::model::user::role::Role;
 use crate::model::user::user::User;

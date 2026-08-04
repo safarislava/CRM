@@ -1,4 +1,4 @@
-use crate::common::BoxError;
+use crate::model::contract::box_error::BoxError;
 use crate::model::notification::burning_deadline::BurningDeadline;
 use crate::model::notification::contract::digest::Digest;
 use crate::model::notification::contract::message::Message;

@@ -1,7 +1,7 @@
 use crate::endpoint::api_error::ApiError;
-use crate::endpoint::auth_header::UserHeader;
-use crate::model::admin::user_deletion::UserDeletion;
-use crate::model::task::contract::task::Task;
+use crate::endpoint::auth_header::AuthHeader;
+use crate::model::user::admin::user_deletion::UserDeletion;
+use crate::model::contract::task::Task;
 use crate::state::AppState;
 use actix_web::{HttpRequest, HttpResponse, web};
 use uuid::Uuid;
@@ -17,7 +17,7 @@ pub async fn delete(
 
     let target_user_id = path.into_inner();
     UserDeletion::new(state.pool.clone(), admin, target_user_id)
-        .done()
+        .perform()
         .await
         .map_err(|e| ApiError::BadRequest(e.to_string()))?;
 

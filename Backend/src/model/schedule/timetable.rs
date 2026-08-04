@@ -1,4 +1,4 @@
-use crate::common::BoxError;
+use crate::model::contract::box_error::BoxError;
 use crate::model::schedule::contract::scheduled::Scheduled;
 use crate::model::schedule::schedule::Schedule;
 use futures_util::future::try_join_all;

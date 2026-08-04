@@ -1,4 +1,4 @@
-use crate::common::BoxError;
+use crate::model::contract::box_error::BoxError;
 use crate::model::user::contract::user_verification::VerificationError;
 use crate::model::credential::contract::password::PasswordError;
 use crate::model::credential::contract::username::UsernameError;

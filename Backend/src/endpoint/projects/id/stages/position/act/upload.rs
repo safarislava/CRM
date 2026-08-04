@@ -1,12 +1,12 @@
 use crate::endpoint::api_error::ApiError;
-use crate::endpoint::auth_header::UserHeader;
+use crate::endpoint::auth_header::AuthHeader;
 use crate::model::project::file_content::FileContent;
 use crate::model::project::project::Project;
 use crate::model::project::stage::Stage;
-use crate::model::task::audit_action::AuditAction;
-use crate::model::task::audited_state_task::AuditedStateTask;
-use crate::model::task::contract::task::Task;
-use crate::model::task::project::logged_act_upload::LoggedActUpload;
+use crate::model::audit::AuditAction;
+use crate::model::audit::AuditedTask;
+use crate::model::contract::task::Task;
+use crate::model::project::logged_act_upload::LoggedActUpload;
 use crate::state::AppState;
 use actix_multipart::Multipart;
 use actix_web::{HttpRequest, HttpResponse, web};
@@ -61,13 +61,13 @@ pub async fn post(
         .map(|kind| kind.mime_type().to_string())
         .unwrap_or_else(|| "application/octet-stream".to_string());
     let file = FileContent::new(filename.clone(), mime_type, data);
-    AuditedStateTask::new(
+    AuditedTask::new(
         user.clone(),
         AuditAction::ActUpload { filename },
         format!("{project_id}:{stage_position}"),
         LoggedActUpload::new(state.pool.clone(), state.storage.clone(), stage, user, file),
     )
-    .done()
+    .perform()
     .await
     .map_err(|e| ApiError::Internal(e.to_string()))?;
     Ok(HttpResponse::Created().finish())

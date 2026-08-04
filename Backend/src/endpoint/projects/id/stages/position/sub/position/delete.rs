@@ -1,8 +1,8 @@
 use crate::endpoint::api_error::ApiError;
 use crate::model::project::project::Project;
 use crate::model::project::stage::Stage;
-use crate::model::task::contract::task::Task;
-use crate::model::task::project::stage_removal::StageRemoval;
+use crate::model::contract::task::Task;
+use crate::model::project::stage_removal::StageRemoval;
 use crate::state::AppState;
 use actix_web::{HttpResponse, web};
 use uuid::Uuid;
@@ -16,7 +16,7 @@ pub async fn delete(
         state.pool.clone(),
         Stage::new_substage(Project::new(project_id), parent_position, position),
     )
-    .done()
+    .perform()
     .await
     .map_err(|e| ApiError::Internal(e.to_string()))?;
     Ok(HttpResponse::Ok().finish())

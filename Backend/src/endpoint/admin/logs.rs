@@ -1,5 +1,5 @@
 use crate::endpoint::api_error::ApiError;
-use crate::model::admin::system_logs::SystemLogs;
+use crate::model::user::admin::system_logs::SystemLogs;
 use crate::model::project::contract::json::Json;
 use actix_web::{HttpResponse, web};
 use serde::Deserialize;

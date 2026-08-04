@@ -1,9 +1,9 @@
 use crate::endpoint::api_error::ApiError;
-use crate::endpoint::auth_header::UserHeader;
-use crate::model::task::audit_action::AuditAction;
-use crate::model::task::audited_state_task::AuditedStateTask;
-use crate::model::task::contract::task::Task;
-use crate::model::task::project::project_registration::ProjectRegistration;
+use crate::endpoint::auth_header::AuthHeader;
+use crate::model::audit::AuditAction;
+use crate::model::audit::AuditedTask;
+use crate::model::contract::task::Task;
+use crate::model::project::project_registration::ProjectRegistration;
 use crate::state::AppState;
 use actix_web::{HttpRequest, HttpResponse, web};
 
@@ -21,13 +21,13 @@ pub async fn create(
         .user()
         .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
     let title = body.title.clone();
-    AuditedStateTask::new(
+    AuditedTask::new(
         user,
         AuditAction::ProjectCreate,
         title.clone(),
         ProjectRegistration::new(state.pool.clone(), title),
     )
-    .done()
+    .perform()
     .await
     .map_err(|e| ApiError::Internal(e.to_string()))?;
     Ok(HttpResponse::Created().finish())

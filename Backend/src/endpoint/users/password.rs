@@ -1,12 +1,12 @@
 use crate::endpoint::api_error::ApiError;
-use crate::endpoint::auth_header::UserHeader;
+use crate::endpoint::auth_header::AuthHeader;
 use crate::model::credential::db_hash::DbHash;
 use crate::model::credential::hash_user_verification::HashUserVerification;
 use crate::model::credential::hashed_password::HashedPassword;
 use crate::model::credential::raw_password::RawPassword;
 use crate::model::credential::valid_password::ValidPassword;
-use crate::model::task::contract::task::Task;
-use crate::model::task::user::password_update::PasswordUpdate;
+use crate::model::contract::task::Task;
+use crate::model::user::password_update::PasswordUpdate;
 use crate::model::user::verification_protected_user::VerificationProtectedUser;
 use crate::state::AppState;
 use actix_web::{HttpRequest, HttpResponse, web};
@@ -32,7 +32,7 @@ pub async fn patch(
     let user = VerificationProtectedUser::new(user, verification);
     let new_password = HashedPassword::new(ValidPassword::new(RawPassword::new(body.new_password.clone())));
     PasswordUpdate::new(state.pool.clone(), Box::new(user), Box::new(new_password))
-        .done()
+        .perform()
         .await?;
     Ok(HttpResponse::Ok().finish())
 }

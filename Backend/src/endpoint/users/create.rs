@@ -4,10 +4,10 @@ use crate::model::credential::raw_password::RawPassword;
 use crate::model::credential::raw_username::RawUsername;
 use crate::model::credential::valid_password::ValidPassword;
 use crate::model::credential::valid_username::ValidUsername;
-use crate::model::task::audit_action::AuditAction;
-use crate::model::task::audited_state_task::AuditedStateTask;
-use crate::model::task::contract::task::Task;
-use crate::model::task::user::invite_consumption::{InviteConsumption, InviteStatus};
+use crate::model::audit::AuditAction;
+use crate::model::audit::AuditedTask;
+use crate::model::contract::task::Task;
+use crate::model::user::invite_consumption::{InviteConsumption, InviteStatus};
 use crate::model::user::invite::InviteCode;
 use crate::state::AppState;
 use actix_web::{HttpResponse, web};
@@ -29,7 +29,7 @@ pub async fn create(
     let username = ValidUsername::new(RawUsername::new(body.username.clone()));
     let password = HashedPassword::new(ValidPassword::new(RawPassword::new(body.password.clone())));
     let username_str = body.username.clone();
-    let result = AuditedStateTask::new(
+    let result = AuditedTask::new(
         "anonymous",
         AuditAction::UserCreate,
         username_str,
@@ -41,7 +41,7 @@ pub async fn create(
             body.email.clone(),
         ),
     )
-    .done()
+    .perform()
     .await?;
     match result {
         InviteStatus::Ok => Ok(HttpResponse::Created().finish()),

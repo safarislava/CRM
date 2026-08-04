@@ -1,0 +1,45 @@
+use crate::model::contract::box_error::BoxError;
+use crate::mail::Mailer;
+use crate::model::contract::task::Task;
+use crate::model::notification::burning_deadlines::BurningDeadlines;
+use crate::model::notification::contract::digest::Digest;
+use crate::model::notification::contract::message::Message;
+use crate::model::notification::deadline_digest::DeadlineDigest;
+use crate::model::notification::role_recipients::RoleRecipients;
+use crate::model::project::contract::list::List;
+use crate::model::user::role::Role;
+use sqlx::PgPool;
+use std::sync::Arc;
+
+const SUBJECT: &str = "Горящие сроки выполнения";
+
+pub struct DeadlineDigestNotification {
+    pool: Arc<PgPool>,
+    mailer: Arc<Mailer>,
+}
+
+impl DeadlineDigestNotification {
+    pub fn new(pool: Arc<PgPool>, mailer: Arc<Mailer>) -> Self {
+        Self { pool, mailer }
+    }
+}
+
+#[async_trait::async_trait]
+impl Task for DeadlineDigestNotification {
+    type Output = ();
+
+    async fn perform(&self) -> Result<Self::Output, BoxError> {
+        let digest = DeadlineDigest::new(BurningDeadlines::new(self.pool.clone()).items().await?);
+        if digest.is_empty() {
+            tracing::debug!("Deadline digest: No burning deadlines found, skipping notification");
+            return Ok(());
+        }
+        let body = digest.text().await?;
+        let recipients = RoleRecipients::new(self.pool.clone(), Role::Gip).items().await?;
+        tracing::info!(recipients_count = recipients.len(), "Deadline digest: Sending burning deadlines digest");
+        for email in recipients {
+            self.mailer.send(&email, SUBJECT, body.clone()).await?;
+        }
+        Ok(())
+    }
+}

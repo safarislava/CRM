@@ -1,11 +1,11 @@
 use crate::endpoint::api_error::ApiError;
-use crate::endpoint::auth_header::UserHeader;
+use crate::endpoint::auth_header::AuthHeader;
 use crate::model::project::project::Project;
 use crate::model::project::stage::Stage;
-use crate::model::task::audit_action::AuditAction;
-use crate::model::task::audited_state_task::AuditedStateTask;
-use crate::model::task::contract::task::Task;
-use crate::model::task::project::logged_deadline_update::LoggedDeadlineUpdate;
+use crate::model::audit::AuditAction;
+use crate::model::audit::AuditedTask;
+use crate::model::contract::task::Task;
+use crate::model::project::logged_deadline_update::LoggedDeadlineUpdate;
 use crate::state::AppState;
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, web};
@@ -30,7 +30,7 @@ pub async fn patch(
     let (project_id, position) = path.into_inner();
     let stage = Stage::new(Project::new(project_id), position);
     let deadline_str = body.deadline.map(|d| d.to_rfc3339());
-    AuditedStateTask::new(
+    AuditedTask::new(
         user.clone(),
         AuditAction::DeadlineUpdate {
             new_deadline: deadline_str,
@@ -38,7 +38,7 @@ pub async fn patch(
         format!("{project_id}:{position}"),
         LoggedDeadlineUpdate::new(state.pool.clone(), stage, user, body.deadline),
     )
-    .done()
+    .perform()
     .await
     .map_err(|e| ApiError::Internal(e.to_string()))?;
     Ok(HttpResponse::Ok().finish())

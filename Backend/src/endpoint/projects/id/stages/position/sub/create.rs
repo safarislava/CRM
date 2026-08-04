@@ -1,7 +1,7 @@
 use crate::endpoint::api_error::ApiError;
 use crate::model::project::project::Project;
-use crate::model::task::contract::task::Task;
-use crate::model::task::project::stage_appending::StageAppending;
+use crate::model::contract::task::Task;
+use crate::model::project::stage_appending::StageAppending;
 use crate::state::AppState;
 use actix_web::web::Json;
 use actix_web::{HttpResponse, web};
@@ -25,7 +25,7 @@ pub async fn post(
         parent_position,
         body.title.clone(),
     )
-    .done()
+    .perform()
     .await
     .map_err(|e| ApiError::Internal(e.to_string()))?;
     Ok(HttpResponse::Ok().finish())

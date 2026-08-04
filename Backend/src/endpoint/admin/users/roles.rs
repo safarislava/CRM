@@ -1,6 +1,6 @@
 use crate::endpoint::api_error::ApiError;
-use crate::model::admin::user_role_update::UserRoleUpdate;
-use crate::model::task::contract::task::Task;
+use crate::model::user::admin::user_role_update::UserRoleUpdate;
+use crate::model::contract::task::Task;
 use crate::model::user::role::Role;
 use crate::state::AppState;
 use actix_web::{HttpResponse, web};
@@ -19,7 +19,7 @@ pub async fn patch(
 ) -> Result<HttpResponse, ApiError> {
     let target_user_id = path.into_inner();
     UserRoleUpdate::new(state.pool.clone(), target_user_id, body.into_inner().roles)
-        .done()
+        .perform()
         .await
         .map_err(|e| ApiError::Internal(e.to_string()))?;
 

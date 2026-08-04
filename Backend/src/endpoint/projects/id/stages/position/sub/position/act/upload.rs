@@ -1,10 +1,10 @@
 use crate::endpoint::api_error::ApiError;
-use crate::endpoint::auth_header::UserHeader;
+use crate::endpoint::auth_header::AuthHeader;
 use crate::model::project::file_content::FileContent;
 use crate::model::project::project::Project;
 use crate::model::project::stage::Stage;
-use crate::model::task::contract::task::Task;
-use crate::model::task::project::logged_act_upload::LoggedActUpload;
+use crate::model::contract::task::Task;
+use crate::model::project::logged_act_upload::LoggedActUpload;
 use crate::state::AppState;
 use actix_multipart::Multipart;
 use actix_web::{HttpRequest, HttpResponse, web};
@@ -54,7 +54,7 @@ pub async fn post(
         .unwrap_or_else(|| "application/octet-stream".to_string());
     let file = FileContent::new(filename, mime_type, data);
     LoggedActUpload::new(state.pool.clone(), state.storage.clone(), stage, user, file)
-        .done()
+        .perform()
         .await
         .map_err(|e| ApiError::Internal(e.to_string()))?;
     Ok(HttpResponse::Created().finish())

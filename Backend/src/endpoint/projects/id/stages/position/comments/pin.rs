@@ -1,7 +1,7 @@
 use crate::endpoint::api_error::ApiError;
 use crate::model::project::comment::Comment;
-use crate::model::task::contract::task::Task;
-use crate::model::task::project::comment_pinning::CommentPinning;
+use crate::model::contract::task::Task;
+use crate::model::project::comment_pinning::CommentPinning;
 use crate::state::AppState;
 use actix_web::web::Json;
 use actix_web::{HttpResponse, web};
@@ -20,7 +20,7 @@ pub async fn patch(
 ) -> Result<HttpResponse, ApiError> {
     let (_, _, comment_id) = path.into_inner();
     CommentPinning::new(state.pool.clone(), Comment::new(comment_id), body.pinned)
-        .done()
+        .perform()
         .await
         .map_err(|_| ApiError::NotFound("Comment not found".to_string()))?;
     Ok(HttpResponse::Ok().finish())
