@@ -71,5 +71,4 @@ async fn main() -> std::io::Result<()> {
     .await
 }
 
-// TODO Refactor tasks logic
 // TODO Backend tests
