@@ -1,20 +1,20 @@
 use crate::model::contract::box_error::BoxError;
 use crate::model::contract::task::Task;
-use crate::model::project::comment::Comment;
+use crate::model::project::comment::CommentId;
 use sqlx::PgPool;
 use std::sync::Arc;
 
 pub struct CommentPinning {
     pool: Arc<PgPool>,
-    comment: Comment,
+    comment_id: CommentId,
     pinned: bool,
 }
 
 impl CommentPinning {
-    pub fn new(pool: Arc<PgPool>, comment: Comment, pinned: bool) -> Self {
+    pub fn new(pool: Arc<PgPool>, comment_id: CommentId, pinned: bool) -> Self {
         Self {
             pool,
-            comment,
+            comment_id,
             pinned,
         }
     }
@@ -27,7 +27,7 @@ impl Task for CommentPinning {
     async fn perform(&self) -> Result<Self::Output, BoxError> {
         let rows_affected = sqlx::query("UPDATE stage_comments SET is_pinned = $1 WHERE id = $2")
             .bind(self.pinned)
-            .bind(self.comment.id())
+            .bind(self.comment_id.id())
             .execute(self.pool.as_ref())
             .await?
             .rows_affected();

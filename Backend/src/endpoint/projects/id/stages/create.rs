@@ -1,9 +1,9 @@
 use crate::endpoint::api_error::ApiError;
 use crate::endpoint::auth_header::AuthHeader;
-use crate::model::project::project::Project;
 use crate::model::audit::AuditAction;
 use crate::model::audit::AuditedTask;
 use crate::model::contract::task::Task;
+use crate::model::project::project::ProjectId;
 use crate::model::project::stage_appending::StageAppending;
 use crate::state::AppState;
 use actix_web::web::Json;
@@ -31,11 +31,10 @@ pub async fn create(
         user,
         AuditAction::StageCreate,
         format!("{project_id}:{title}"),
-        StageAppending::new(state.pool.clone(), Project::new(project_id), title),
+        StageAppending::new(state.pool.clone(), ProjectId::new(project_id), title),
     )
     .perform()
     .await
     .map_err(|e| ApiError::Internal(e.to_string()))?;
     Ok(HttpResponse::Ok().finish())
 }
-

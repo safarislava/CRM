@@ -1,16 +1,16 @@
-use crate::model::user::contract::user_verification::{UserVerification, VerificationError};
 use crate::model::user::contract::protected_user::ProtectedUser;
-use crate::model::user::user::User;
+use crate::model::user::contract::user_verification::{UserVerification, VerificationError};
+use crate::model::user::user::UserId;
 
 pub struct VerificationProtectedUser {
-    user: User,
+    user_id: UserId,
     verification: Box<dyn UserVerification>,
 }
 
 impl VerificationProtectedUser {
-    pub fn new(user: User, verification: impl UserVerification) -> Self {
+    pub fn new(user_id: UserId, verification: impl UserVerification) -> Self {
         Self {
-            user,
+            user_id,
             verification: Box::new(verification),
         }
     }
@@ -18,9 +18,9 @@ impl VerificationProtectedUser {
 
 #[async_trait::async_trait]
 impl ProtectedUser for VerificationProtectedUser {
-    async fn unprotected(&self) -> Result<User, VerificationError> {
+    async fn unprotected(&self) -> Result<UserId, VerificationError> {
         match self.verification.status().await {
-            Ok(_) => Ok(self.user.clone()),
+            Ok(_) => Ok(self.user_id.clone()),
             Err(e) => Err(e),
         }
     }

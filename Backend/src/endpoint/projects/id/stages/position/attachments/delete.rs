@@ -1,9 +1,9 @@
 use crate::endpoint::api_error::ApiError;
 use crate::endpoint::auth_header::AuthHeader;
-use crate::model::project::attachment::Attachment;
 use crate::model::audit::AuditAction;
 use crate::model::audit::AuditedTask;
 use crate::model::contract::task::Task;
+use crate::model::project::attachment::AttachmentId;
 use crate::model::project::logged_attachment_removal::LoggedAttachmentRemoval;
 use crate::state::AppState;
 use actix_web::{HttpRequest, HttpResponse, web};
@@ -27,7 +27,7 @@ pub async fn delete(
         LoggedAttachmentRemoval::new(
             state.pool.clone(),
             state.storage.clone(),
-            Attachment::new(attachment_id),
+            AttachmentId::new(attachment_id),
             user,
         ),
     )
@@ -36,4 +36,3 @@ pub async fn delete(
     .map_err(|_| ApiError::NotFound("Attachment not found".to_string()))?;
     Ok(HttpResponse::Ok().finish())
 }
-

@@ -15,7 +15,7 @@ struct StageItemMedia {
 
 #[derive(Serialize)]
 struct JsonDeadlineItem {
-    stage: StageItemMedia,
+    stage_id: StageItemMedia,
     project_title: String,
 }
 
@@ -37,7 +37,7 @@ impl DeadlineMedia for JsonDeadlineMedia {
         project_title: &str,
     ) {
         self.items.push(JsonDeadlineItem {
-            stage: StageItemMedia {
+            stage_id: StageItemMedia {
                 project_id,
                 parent_position,
                 position,

@@ -1,7 +1,7 @@
 use crate::model::contract::box_error::BoxError;
 use crate::model::contract::printer::Printer;
 use crate::model::contract::stage_media::StageMedia;
-use crate::model::project::project::Project;
+use crate::model::project::project::ProjectId;
 use chrono::{DateTime, Utc};
 use sqlx::PgPool;
 use std::sync::Arc;
@@ -9,12 +9,12 @@ use uuid::Uuid;
 
 pub struct StageSummaries {
     pool: Arc<PgPool>,
-    project: Project,
+    project_id: ProjectId,
 }
 
 impl StageSummaries {
-    pub fn new(pool: Arc<PgPool>, project: Project) -> Self {
-        Self { pool, project }
+    pub fn new(pool: Arc<PgPool>, project_id: ProjectId) -> Self {
+        Self { pool, project_id }
     }
 }
 
@@ -49,7 +49,7 @@ impl<M: StageMedia> Printer<M> for StageSummaries {
              FROM detailed_stages s
              WHERE s.project_id = $1 ORDER BY s.parent_position, s.position",
         )
-        .bind(self.project.id())
+            .bind(self.project_id.id())
         .fetch_all(self.pool.as_ref())
         .await?;
         for r in rows {

@@ -1,7 +1,7 @@
 use crate::model::contract::attachment_media::AttachmentMedia;
 use crate::model::contract::box_error::BoxError;
 use crate::model::contract::printer::Printer;
-use crate::model::project::stage::Stage;
+use crate::model::project::stage::StageId;
 use chrono::{DateTime, Utc};
 use sqlx::PgPool;
 use std::sync::Arc;
@@ -9,12 +9,12 @@ use uuid::Uuid;
 
 pub struct AttachmentSummaries {
     pool: Arc<PgPool>,
-    stage: Stage,
+    stage_id: StageId,
 }
 
 impl AttachmentSummaries {
-    pub fn new(pool: Arc<PgPool>, stage: Stage) -> Self {
-        Self { pool, stage }
+    pub fn new(pool: Arc<PgPool>, stage_id: StageId) -> Self {
+        Self { pool, stage_id }
     }
 }
 
@@ -38,9 +38,9 @@ impl<M: AttachmentMedia> Printer<M> for AttachmentSummaries {
              WHERE project_id = $1 AND parent_position = $2 AND stage_position = $3 AND is_act = FALSE \
              ORDER BY created_at",
         )
-        .bind(self.stage.project().id())
-        .bind(self.stage.parent_position())
-        .bind(self.stage.position())
+            .bind(self.stage_id.project_id().id())
+            .bind(self.stage_id.parent_position())
+            .bind(self.stage_id.position())
         .fetch_all(self.pool.as_ref())
         .await?;
         for row in rows {

@@ -1,23 +1,31 @@
-use crate::model::project::project::Project;
+use crate::model::project::project::ProjectId;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct Stage {
-    project: Project,
+pub struct StageId {
+    project_id: ProjectId,
     parent_position: i32,
     position: i32,
 }
 
-impl Stage {
-    pub fn new(project: Project, position: i32) -> Self {
-        Stage { project, parent_position: 0, position }
+impl StageId {
+    pub fn new(project_id: ProjectId, position: i32) -> Self {
+        StageId {
+            project_id,
+            parent_position: 0,
+            position,
+        }
     }
 
-    pub fn new_substage(project: Project, parent_position: i32, position: i32) -> Self {
-        Stage { project, parent_position, position }
+    pub fn new_substage(project_id: ProjectId, parent_position: i32, position: i32) -> Self {
+        StageId {
+            project_id,
+            parent_position,
+            position,
+        }
     }
 
-    pub fn project(&self) -> Project {
-        self.project
+    pub fn project_id(&self) -> ProjectId {
+        self.project_id
     }
 
     pub fn parent_position(&self) -> i32 {

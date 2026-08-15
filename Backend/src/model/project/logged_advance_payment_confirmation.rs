@@ -4,26 +4,26 @@ use crate::model::contract::task::Task;
 use crate::model::contract::value::Value;
 use crate::model::project::advance_payment_confirmation::AdvancePaymentConfirmation;
 use crate::model::project::advance_payment_confirmation_text::AdvancePaymentConfirmationText;
-use crate::model::project::stage::Stage;
+use crate::model::project::stage::StageId;
 use crate::model::project::stage_advance_payment_confirmed_receipt::StageAdvancePaymentConfirmedReceipt;
 use crate::model::project::system_comment_creation::SystemCommentCreation;
-use crate::model::user::user::User;
+use crate::model::user::user::UserId;
 use sqlx::PgPool;
 use std::sync::Arc;
 
 pub struct LoggedAdvancePaymentConfirmation {
     pool: Arc<PgPool>,
-    stage: Stage,
-    user: User,
+    stage_id: StageId,
+    user_id: UserId,
     confirmed: bool,
 }
 
 impl LoggedAdvancePaymentConfirmation {
-    pub fn new(pool: Arc<PgPool>, stage: Stage, user: User, confirmed: bool) -> Self {
+    pub fn new(pool: Arc<PgPool>, stage_id: StageId, user_id: UserId, confirmed: bool) -> Self {
         Self {
             pool,
-            stage,
-            user,
+            stage_id,
+            user_id,
             confirmed,
         }
     }
@@ -34,18 +34,19 @@ impl Task for LoggedAdvancePaymentConfirmation {
     type Output = ();
 
     async fn perform(&self) -> Result<Self::Output, BoxError> {
-        let old = StageAdvancePaymentConfirmedReceipt::new(self.pool.clone(), self.stage.clone())
-            .value()
-            .await?;
-        AdvancePaymentConfirmation::new(self.pool.clone(), self.stage.clone(), self.confirmed)
+        let old =
+            StageAdvancePaymentConfirmedReceipt::new(self.pool.clone(), self.stage_id.clone())
+                .value()
+                .await?;
+        AdvancePaymentConfirmation::new(self.pool.clone(), self.stage_id.clone(), self.confirmed)
             .perform()
             .await?;
         if old != Some(self.confirmed) {
             let text = AdvancePaymentConfirmationText::new(self.confirmed).text();
             let _ = SystemCommentCreation::new(
                 self.pool.clone(),
-                self.stage.clone(),
-                self.user.clone(),
+                self.stage_id.clone(),
+                self.user_id.clone(),
                 text,
             )
             .perform()

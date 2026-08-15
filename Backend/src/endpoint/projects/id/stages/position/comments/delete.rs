@@ -1,9 +1,9 @@
 use crate::endpoint::api_error::ApiError;
 use crate::endpoint::auth_header::AuthHeader;
-use crate::model::project::comment::Comment;
 use crate::model::audit::AuditAction;
 use crate::model::audit::AuditedTask;
 use crate::model::contract::task::Task;
+use crate::model::project::comment::CommentId;
 use crate::model::project::comment_removal::CommentRemoval;
 use crate::state::AppState;
 use actix_web::{HttpRequest, HttpResponse, web};
@@ -22,11 +22,10 @@ pub async fn delete(
         user,
         AuditAction::CommentDelete,
         comment_id,
-        CommentRemoval::new(state.pool.clone(), Comment::new(comment_id)),
+        CommentRemoval::new(state.pool.clone(), CommentId::new(comment_id)),
     )
     .perform()
     .await
     .map_err(|_| ApiError::NotFound("Comment not found".to_string()))?;
     Ok(HttpResponse::Ok().finish())
 }
-

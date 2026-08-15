@@ -1,6 +1,6 @@
 use crate::model::session::contract::user_id_source::UserIdSource;
 use crate::model::session::signed_access_token::SignedAccessToken;
-use crate::model::user::user::User;
+use crate::model::user::user::UserId;
 use actix_web::dev::{Service, ServiceRequest, ServiceResponse, forward_ready};
 use actix_web::{Error, HttpMessage};
 use std::pin::Pin;
@@ -33,7 +33,7 @@ where
 
         match user_id {
             Some(id) => {
-                request.extensions_mut().insert(User::new(id));
+                request.extensions_mut().insert(UserId::new(id));
                 Box::pin(svc.call(request))
             }
             None => {
@@ -44,4 +44,3 @@ where
         }
     }
 }
-

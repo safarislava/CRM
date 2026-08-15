@@ -1,6 +1,6 @@
 use crate::model::contract::box_error::BoxError;
 use crate::model::project::contract::json::Json;
-use crate::model::project::stage::Stage;
+use crate::model::project::stage::StageId;
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 use sqlx::PgPool;
@@ -9,18 +9,17 @@ use uuid::Uuid;
 
 pub struct DetailedStage {
     pool: Arc<PgPool>,
-    stage: Stage,
+    stage_id: StageId,
 }
 
 impl DetailedStage {
-    pub fn new(pool: Arc<PgPool>, stage: Stage) -> Self {
-        DetailedStage { pool, stage }
+    pub fn new(pool: Arc<PgPool>, stage_id: StageId) -> Self {
+        DetailedStage { pool, stage_id }
     }
 }
 
 #[async_trait::async_trait]
 impl Json for DetailedStage {
-
     async fn json(&self) -> Result<serde_json::Value, BoxError> {
         #[derive(sqlx::FromRow, Serialize)]
         struct Row {
@@ -41,9 +40,9 @@ impl Json for DetailedStage {
                     completed, advance_cost, advance_confirmed, final_cost, final_confirmed, gip_confirmed
              FROM detailed_stages WHERE project_id = $1 AND parent_position = $2 AND position = $3",
         )
-        .bind(self.stage.project().id())
-        .bind(self.stage.parent_position())
-        .bind(self.stage.position())
+            .bind(self.stage_id.project_id().id())
+            .bind(self.stage_id.parent_position())
+            .bind(self.stage_id.position())
         .fetch_one(self.pool.as_ref())
         .await?;
         Ok(serde_json::to_value(row)?)

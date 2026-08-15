@@ -2,7 +2,7 @@ use crate::model::contract::box_error::BoxError;
 use crate::model::contract::task::Task;
 use crate::model::project::contract::file::File;
 use crate::model::project::file_content::FileContent;
-use crate::model::project::stage::Stage;
+use crate::model::project::stage::StageId;
 use crate::storage::Storage;
 use sqlx::PgPool;
 use std::sync::Arc;
@@ -11,16 +11,21 @@ use uuid::Uuid;
 pub struct ActUpload {
     pool: Arc<PgPool>,
     storage: Arc<Storage>,
-    stage: Stage,
+    stage_id: StageId,
     file: FileContent,
 }
 
 impl ActUpload {
-    pub fn new(pool: Arc<PgPool>, storage: Arc<Storage>, stage: Stage, file: FileContent) -> Self {
+    pub fn new(
+        pool: Arc<PgPool>,
+        storage: Arc<Storage>,
+        stage_id: StageId,
+        file: FileContent,
+    ) -> Self {
         Self {
             pool,
             storage,
-            stage,
+            stage_id,
             file,
         }
     }
@@ -40,9 +45,9 @@ impl Task for ActUpload {
              VALUES ($1, $2, $3, $4, $5, $6, $7, true)",
         )
         .bind(id)
-        .bind(self.stage.project().id())
-        .bind(self.stage.parent_position())
-        .bind(self.stage.position())
+            .bind(self.stage_id.project_id().id())
+            .bind(self.stage_id.parent_position())
+            .bind(self.stage_id.position())
         .bind(self.file.name())
         .bind(self.file.media_type())
         .bind(self.file.size_bytes())

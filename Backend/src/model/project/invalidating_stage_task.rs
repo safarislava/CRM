@@ -2,22 +2,22 @@ use crate::model::cache::contract::cache::Cache;
 use crate::model::contract::box_error::BoxError;
 use crate::model::contract::task::Task;
 use crate::model::project::collecting_stage_media::StageSummaryItem;
-use crate::model::project::project::Project;
+use crate::model::project::project::ProjectId;
 use crate::model::project::stage_cache_key::StageCacheKey;
 use async_trait::async_trait;
 
 pub struct InvalidatingStageTask<T, C> {
     origin: T,
     cache: C,
-    project: Project,
+    project_id: ProjectId,
 }
 
 impl<T, C> InvalidatingStageTask<T, C> {
-    pub fn new(origin: T, cache: C, project: Project) -> Self {
+    pub fn new(origin: T, cache: C, project_id: ProjectId) -> Self {
         Self {
             origin,
             cache,
-            project,
+            project_id,
         }
     }
 }
@@ -34,7 +34,7 @@ where
         self.origin.perform().await?;
         let _ = self
             .cache
-            .evict(&StageCacheKey::ByProject(self.project))
+            .evict(&StageCacheKey::ByProjectId(self.project_id))
             .await;
         Ok(())
     }

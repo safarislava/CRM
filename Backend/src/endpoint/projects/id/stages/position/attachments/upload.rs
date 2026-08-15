@@ -1,12 +1,12 @@
 use crate::endpoint::api_error::ApiError;
 use crate::endpoint::auth_header::AuthHeader;
-use crate::model::project::file_content::FileContent;
-use crate::model::project::project::Project;
-use crate::model::project::stage::Stage;
 use crate::model::audit::AuditAction;
 use crate::model::audit::AuditedTask;
 use crate::model::contract::task::Task;
+use crate::model::project::file_content::FileContent;
 use crate::model::project::logged_attachment_upload::LoggedAttachmentUpload;
+use crate::model::project::project::ProjectId;
+use crate::model::project::stage::StageId;
 use crate::state::AppState;
 use actix_multipart::Multipart;
 use actix_web::{HttpRequest, HttpResponse, web};
@@ -44,7 +44,7 @@ pub async fn post(
         .user()
         .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
     let (project_id, stage_position) = path.into_inner();
-    let stage = Stage::new(Project::new(project_id), stage_position);
+    let stage_id = StageId::new(ProjectId::new(project_id), stage_position);
 
     let mut field = payload
         .next()
@@ -65,11 +65,16 @@ pub async fn post(
         user.clone(),
         AuditAction::AttachmentUpload { filename },
         format!("{project_id}:{stage_position}"),
-        LoggedAttachmentUpload::new(state.pool.clone(), state.storage.clone(), stage, user, file),
+        LoggedAttachmentUpload::new(
+            state.pool.clone(),
+            state.storage.clone(),
+            stage_id,
+            user,
+            file,
+        ),
     )
     .perform()
     .await
     .map_err(|e| ApiError::Internal(e.to_string()))?;
     Ok(HttpResponse::Created().json(serde_json::json!({ "id": id })))
 }
-

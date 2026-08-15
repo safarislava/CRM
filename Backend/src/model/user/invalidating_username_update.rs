@@ -1,8 +1,8 @@
 use crate::model::cache::contract::cache::Cache;
 use crate::model::contract::box_error::BoxError;
 use crate::model::contract::task::Task;
+use crate::model::user::user::UserId;
 use crate::model::user::user_cache_key::UserCacheKey;
-use crate::model::user::user::User;
 use async_trait::async_trait;
 use uuid::Uuid;
 
@@ -36,7 +36,7 @@ impl<T, C> InvalidatingUsernameUpdate<T, C> {
 impl<T, C> Task for InvalidatingUsernameUpdate<T, C>
 where
     T: Task<Output = ()> + Send + Sync,
-    C: Cache<UserCacheKey, User> + Send + Sync,
+    C: Cache<UserCacheKey, UserId> + Send + Sync,
 {
     type Output = ();
 

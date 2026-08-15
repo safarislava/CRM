@@ -1,26 +1,26 @@
 use crate::model::contract::box_error::BoxError;
 use crate::model::project::contract::json::Json;
 use crate::model::user::role::Role;
-use crate::model::user::user::User;
+use crate::model::user::user::UserId;
 use serde::Serialize;
 use sqlx::PgPool;
 use std::sync::Arc;
 
 pub struct DetailedUser {
     pool: Arc<PgPool>,
-    user: User,
+    user_id: UserId,
 }
 
 impl DetailedUser {
-    pub fn new(pool: Arc<PgPool>, user: User) -> DetailedUser {
-        DetailedUser { pool, user }
+    pub fn new(pool: Arc<PgPool>, user_id: UserId) -> DetailedUser {
+        DetailedUser { pool, user_id }
     }
 
     async fn profile(&self) -> Result<Profile, sqlx::Error> {
         sqlx::query_as::<_, Profile>(
             "SELECT username, email, notifications_enabled FROM users WHERE id = $1",
         )
-        .bind(self.user.id())
+        .bind(self.user_id.id())
         .fetch_one(self.pool.as_ref())
         .await
     }
@@ -31,7 +31,7 @@ impl DetailedUser {
             role: Role,
         }
         let rows = sqlx::query_as::<_, Row>("SELECT role FROM user_roles WHERE user_id = $1")
-            .bind(self.user.id())
+            .bind(self.user_id.id())
             .fetch_all(self.pool.as_ref())
             .await?;
         Ok(rows.into_iter().map(|r| r.role).collect())

@@ -2,8 +2,8 @@ use crate::endpoint::api_error::ApiError;
 use crate::endpoint::json_act_media::JsonActMedia;
 use crate::model::contract::printer::Printer;
 use crate::model::project::act_summaries::ActSummaries;
-use crate::model::project::project::Project;
-use crate::model::project::stage::Stage;
+use crate::model::project::project::ProjectId;
+use crate::model::project::stage::StageId;
 use crate::state::AppState;
 use actix_web::{HttpResponse, web};
 use uuid::Uuid;
@@ -13,9 +13,9 @@ pub async fn get(
     path: web::Path<(Uuid, i32, i32)>,
 ) -> Result<HttpResponse, ApiError> {
     let (project_id, parent_position, position) = path.into_inner();
-    let stage = Stage::new_substage(Project::new(project_id), parent_position, position);
+    let stage_id = StageId::new_substage(ProjectId::new(project_id), parent_position, position);
     let mut media = JsonActMedia::default();
-    ActSummaries::new(state.pool.clone(), stage)
+    ActSummaries::new(state.pool.clone(), stage_id)
         .print(&mut media)
         .await
         .map_err(|e| ApiError::Internal(e.to_string()))?;

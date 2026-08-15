@@ -1,9 +1,9 @@
 use crate::endpoint::api_error::ApiError;
 use crate::endpoint::auth_header::AuthHeader;
-use crate::model::project::project::Project;
 use crate::model::audit::AuditAction;
 use crate::model::audit::AuditedTask;
 use crate::model::contract::task::Task;
+use crate::model::project::project::ProjectId;
 use crate::model::project::stage_reordering::StageReordering;
 use crate::state::AppState;
 use actix_web::web::Json;
@@ -30,9 +30,13 @@ pub async fn patch(
         user,
         AuditAction::StageReorder { to: body.to },
         format!("{project_id}:{position}"),
-        StageReordering::new(state.pool.clone(), Project::new(project_id), position, body.to),
+        StageReordering::new(
+            state.pool.clone(),
+            ProjectId::new(project_id),
+            position,
+            body.to,
+        ),
     )
-
     .perform()
     .await
     .map_err(|e| ApiError::Internal(e.to_string()))?;

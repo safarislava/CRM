@@ -4,32 +4,32 @@ use crate::model::contract::task::Task;
 use crate::model::contract::value::Value;
 use crate::model::project::deadline_change_text::DeadlineChangeText;
 use crate::model::project::deadline_update::DeadlineUpdate;
-use crate::model::project::stage::Stage;
+use crate::model::project::stage::StageId;
 use crate::model::project::stage_deadline_receipt::StageDeadlineReceipt;
 use crate::model::project::system_comment_creation::SystemCommentCreation;
-use crate::model::user::user::User;
+use crate::model::user::user::UserId;
 use chrono::{DateTime, Utc};
 use sqlx::PgPool;
 use std::sync::Arc;
 
 pub struct LoggedDeadlineUpdate {
     pool: Arc<PgPool>,
-    stage: Stage,
-    user: User,
+    stage_id: StageId,
+    user_id: UserId,
     deadline: Option<DateTime<Utc>>,
 }
 
 impl LoggedDeadlineUpdate {
     pub fn new(
         pool: Arc<PgPool>,
-        stage: Stage,
-        user: User,
+        stage_id: StageId,
+        user_id: UserId,
         deadline: Option<DateTime<Utc>>,
     ) -> Self {
         Self {
             pool,
-            stage,
-            user,
+            stage_id,
+            user_id,
             deadline,
         }
     }
@@ -40,10 +40,10 @@ impl Task for LoggedDeadlineUpdate {
     type Output = ();
 
     async fn perform(&self) -> Result<Self::Output, BoxError> {
-        let old = StageDeadlineReceipt::new(self.pool.clone(), self.stage.clone())
+        let old = StageDeadlineReceipt::new(self.pool.clone(), self.stage_id.clone())
             .value()
             .await?;
-        DeadlineUpdate::new(self.pool.clone(), self.stage.clone(), self.deadline)
+        DeadlineUpdate::new(self.pool.clone(), self.stage_id.clone(), self.deadline)
             .perform()
             .await?;
         if let Some(old_date) = old {
@@ -51,8 +51,8 @@ impl Task for LoggedDeadlineUpdate {
                 let text = DeadlineChangeText::new(old_date, self.deadline).text();
                 let _ = SystemCommentCreation::new(
                     self.pool.clone(),
-                    self.stage.clone(),
-                    self.user.clone(),
+                    self.stage_id.clone(),
+                    self.user_id.clone(),
                     text,
                 )
                 .perform()

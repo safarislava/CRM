@@ -1,26 +1,29 @@
 use crate::model::contract::box_error::BoxError;
 use crate::model::contract::value::Value;
-use crate::model::project::attachment::Attachment;
-use crate::model::project::project::Project;
-use crate::model::project::stage::Stage;
+use crate::model::project::attachment::AttachmentId;
+use crate::model::project::project::ProjectId;
+use crate::model::project::stage::StageId;
 use sqlx::PgPool;
 use std::sync::Arc;
 use uuid::Uuid;
 
 pub struct AttachmentReceipt {
     pool: Arc<PgPool>,
-    attachment: Attachment,
+    attachment_id: AttachmentId,
 }
 
 impl AttachmentReceipt {
-    pub fn new(pool: Arc<PgPool>, attachment: Attachment) -> Self {
-        Self { pool, attachment }
+    pub fn new(pool: Arc<PgPool>, attachment_id: AttachmentId) -> Self {
+        Self {
+            pool,
+            attachment_id,
+        }
     }
 }
 
 #[async_trait::async_trait]
-impl Value<Option<(String, Stage, bool)>> for AttachmentReceipt {
-    async fn value(&self) -> Result<Option<(String, Stage, bool)>, BoxError> {
+impl Value<Option<(String, StageId, bool)>> for AttachmentReceipt {
+    async fn value(&self) -> Result<Option<(String, StageId, bool)>, BoxError> {
         #[derive(sqlx::FromRow)]
         struct Row {
             project_id: Uuid,
@@ -32,12 +35,16 @@ impl Value<Option<(String, Stage, bool)>> for AttachmentReceipt {
         let row = sqlx::query_as::<_, Row>(
             "SELECT project_id, parent_position, stage_position, filename, is_act FROM attachments WHERE id = $1",
         )
-        .bind(self.attachment.id())
+            .bind(self.attachment_id.id())
         .fetch_optional(self.pool.as_ref())
         .await?;
         Ok(row.map(|r| {
-            let stage = Stage::new_substage(Project::new(r.project_id), r.parent_position, r.stage_position);
-            (r.filename, stage, r.is_act)
+            let stage_id = StageId::new_substage(
+                ProjectId::new(r.project_id),
+                r.parent_position,
+                r.stage_position,
+            );
+            (r.filename, stage_id, r.is_act)
         }))
     }
 }

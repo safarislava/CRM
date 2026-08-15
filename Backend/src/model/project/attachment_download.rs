@@ -1,6 +1,6 @@
 use crate::model::contract::box_error::BoxError;
 use crate::model::contract::task::Task;
-use crate::model::project::attachment::Attachment;
+use crate::model::project::attachment::AttachmentId;
 use crate::storage::{FileStream, Storage};
 use sqlx::PgPool;
 use std::sync::Arc;
@@ -8,15 +8,15 @@ use std::sync::Arc;
 pub struct AttachmentDownload {
     pool: Arc<PgPool>,
     storage: Arc<Storage>,
-    attachment: Attachment,
+    attachment_id: AttachmentId,
 }
 
 impl AttachmentDownload {
-    pub fn new(pool: Arc<PgPool>, storage: Arc<Storage>, attachment: Attachment) -> Self {
+    pub fn new(pool: Arc<PgPool>, storage: Arc<Storage>, attachment_id: AttachmentId) -> Self {
         Self {
             pool,
             storage,
-            attachment,
+            attachment_id,
         }
     }
 }
@@ -28,12 +28,12 @@ impl Task for AttachmentDownload {
     async fn perform(&self) -> Result<Self::Output, BoxError> {
         let (filename, mime_type, size_bytes): (String, String, i64) =
             sqlx::query_as("SELECT filename, mime_type, size_bytes FROM attachments WHERE id = $1")
-                .bind(self.attachment.id())
+                .bind(self.attachment_id.id())
                 .fetch_one(self.pool.as_ref())
                 .await?;
         let stream = self
             .storage
-            .stream(&self.attachment.id().to_string())
+            .stream(&self.attachment_id.id().to_string())
             .await?;
         let encoded: String = filename
             .bytes()

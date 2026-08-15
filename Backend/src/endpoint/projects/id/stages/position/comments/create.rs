@@ -1,11 +1,11 @@
 use crate::endpoint::api_error::ApiError;
 use crate::endpoint::auth_header::AuthHeader;
-use crate::model::project::project::Project;
-use crate::model::project::stage::Stage;
 use crate::model::audit::AuditAction;
 use crate::model::audit::AuditedTask;
 use crate::model::contract::task::Task;
 use crate::model::project::comment_creation::CommentCreation;
+use crate::model::project::project::ProjectId;
+use crate::model::project::stage::StageId;
 use crate::state::AppState;
 use actix_web::{HttpRequest, HttpResponse, web};
 use serde::Deserialize;
@@ -26,7 +26,7 @@ pub async fn post(
         .user()
         .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
     let (project_id, stage_position) = path.into_inner();
-    let stage = Stage::new(Project::new(project_id), stage_position);
+    let stage_id = StageId::new(ProjectId::new(project_id), stage_position);
     let text = body.into_inner().text;
     if text.trim().is_empty() {
         return Err(ApiError::BadRequest("Text must not be empty".to_string()));
@@ -35,11 +35,10 @@ pub async fn post(
         user.clone(),
         AuditAction::CommentCreate { text: text.clone() },
         format!("{project_id}:{stage_position}"),
-        CommentCreation::new(state.pool.clone(), stage, user, text),
+        CommentCreation::new(state.pool.clone(), stage_id, user, text),
     )
     .perform()
     .await
     .map_err(|e| ApiError::Internal(e.to_string()))?;
     Ok(HttpResponse::Created().finish())
 }
-

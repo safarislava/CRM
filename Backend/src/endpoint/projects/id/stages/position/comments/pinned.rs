@@ -2,8 +2,8 @@ use crate::endpoint::api_error::ApiError;
 use crate::endpoint::json_comment_media::JsonCommentMedia;
 use crate::model::contract::printer::Printer;
 use crate::model::project::pinned_comment_summaries::PinnedCommentSummaries;
-use crate::model::project::project::Project;
-use crate::model::project::stage::Stage;
+use crate::model::project::project::ProjectId;
+use crate::model::project::stage::StageId;
 use crate::state::AppState;
 use actix_web::{HttpResponse, web};
 use uuid::Uuid;
@@ -13,9 +13,9 @@ pub async fn get(
     path: web::Path<(Uuid, i32)>,
 ) -> Result<HttpResponse, ApiError> {
     let (project_id, stage_position) = path.into_inner();
-    let stage = Stage::new(Project::new(project_id), stage_position);
+    let stage_id = StageId::new(ProjectId::new(project_id), stage_position);
     let mut media = JsonCommentMedia::default();
-    PinnedCommentSummaries::new(state.pool.clone(), stage)
+    PinnedCommentSummaries::new(state.pool.clone(), stage_id)
         .print(&mut media)
         .await
         .map_err(|e| ApiError::Internal(e.to_string()))?;

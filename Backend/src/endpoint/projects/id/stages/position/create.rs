@@ -1,6 +1,6 @@
 use crate::endpoint::api_error::ApiError;
-use crate::model::project::project::Project;
 use crate::model::contract::task::Task;
+use crate::model::project::project::ProjectId;
 use crate::model::project::stage_insertion::StageInsertion;
 use crate::state::AppState;
 use actix_web::web::Json;
@@ -21,7 +21,7 @@ pub async fn create(
     let (project_id, position) = path.into_inner();
     StageInsertion::new(
         state.pool.clone(),
-        Project::new(project_id),
+        ProjectId::new(project_id),
         position,
         body.title.clone(),
     )

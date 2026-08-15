@@ -1,6 +1,6 @@
 use crate::endpoint::api_error::ApiError;
-use crate::model::project::project::Project;
 use crate::model::contract::task::Task;
+use crate::model::project::project::ProjectId;
 use crate::model::project::stage_reordering::StageReordering;
 use crate::state::AppState;
 use actix_web::web::Json;
@@ -21,7 +21,7 @@ pub async fn patch(
     let (project_id, parent_position, position) = path.into_inner();
     StageReordering::sub(
         state.pool.clone(),
-        Project::new(project_id),
+        ProjectId::new(project_id),
         parent_position,
         position,
         body.to,

@@ -1,6 +1,6 @@
 use crate::endpoint::api_error::ApiError;
-use crate::model::project::attachment::Attachment;
 use crate::model::contract::task::Task;
+use crate::model::project::attachment::AttachmentId;
 use crate::model::project::attachment_download::AttachmentDownload;
 use crate::state::AppState;
 use actix_web::{HttpResponse, web};
@@ -14,7 +14,7 @@ pub async fn get(
     let (stream, content_length, content_type, content_disposition) = AttachmentDownload::new(
         state.pool.clone(),
         state.storage.clone(),
-        Attachment::new(act_id),
+        AttachmentId::new(act_id),
     )
     .perform()
     .await

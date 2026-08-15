@@ -1,10 +1,11 @@
 use uuid::Uuid;
 
-pub struct Comment {
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct CommentId {
     id: Uuid,
 }
 
-impl Comment {
+impl CommentId {
     pub fn new(id: Uuid) -> Self {
         Self { id }
     }

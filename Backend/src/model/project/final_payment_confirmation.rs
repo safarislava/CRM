@@ -1,20 +1,20 @@
 use crate::model::contract::box_error::BoxError;
 use crate::model::contract::task::Task;
-use crate::model::project::stage::Stage;
+use crate::model::project::stage::StageId;
 use sqlx::PgPool;
 use std::sync::Arc;
 
 pub struct FinalPaymentConfirmation {
     pool: Arc<PgPool>,
-    stage: Stage,
+    stage_id: StageId,
     confirmed: bool,
 }
 
 impl FinalPaymentConfirmation {
-    pub fn new(pool: Arc<PgPool>, stage: Stage, confirmed: bool) -> Self {
+    pub fn new(pool: Arc<PgPool>, stage_id: StageId, confirmed: bool) -> Self {
         Self {
             pool,
-            stage,
+            stage_id,
             confirmed,
         }
     }
@@ -28,9 +28,9 @@ impl Task for FinalPaymentConfirmation {
         sqlx::query(
             "UPDATE stages SET final_confirmed = $4 WHERE project_id = $1 AND parent_position = $2 AND position = $3",
         )
-        .bind(self.stage.project().id())
-        .bind(self.stage.parent_position())
-        .bind(self.stage.position())
+            .bind(self.stage_id.project_id().id())
+            .bind(self.stage_id.parent_position())
+            .bind(self.stage_id.position())
         .bind(self.confirmed)
         .execute(self.pool.as_ref())
         .await?;

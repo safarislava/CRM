@@ -1,13 +1,13 @@
 use uuid::Uuid;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct Project {
+pub struct ProjectId {
     id: Uuid,
 }
 
-impl Project {
+impl ProjectId {
     pub fn new(id: Uuid) -> Self {
-        Project { id }
+        ProjectId { id }
     }
 
     pub fn id(&self) -> Uuid {

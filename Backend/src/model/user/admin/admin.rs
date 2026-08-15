@@ -1,19 +1,19 @@
 use crate::endpoint::api_error::ApiError;
 use crate::model::user::contract::admin_access::AdminAccess;
-use crate::model::user::user::User;
+use crate::model::user::user::UserId;
 
 #[derive(Clone, Debug)]
 pub struct Admin {
-    user: User,
+    user_id: UserId,
 }
 
 impl Admin {
-    pub fn new(user: User) -> Self {
-        Self { user }
+    pub fn new(user_id: UserId) -> Self {
+        Self { user_id }
     }
 
-    pub fn user(&self) -> &User {
-        &self.user
+    pub fn user_id(&self) -> &UserId {
+        &self.user_id
     }
 }
 

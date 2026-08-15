@@ -26,7 +26,7 @@ impl Task for UserDeletion {
     type Output = ();
 
     async fn perform(&self) -> Result<Self::Output, BoxError> {
-        if self.admin.user().id() == self.target_user_id {
+        if self.admin.user_id().id() == self.target_user_id {
             return Err(Box::new(std::io::Error::new(
                 std::io::ErrorKind::PermissionDenied,
                 "Administrators cannot delete their own account",

@@ -1,24 +1,42 @@
 use crate::model::contract::box_error::BoxError;
 use crate::model::contract::task::Task;
-use crate::model::project::project::Project;
+use crate::model::project::project::ProjectId;
 use sqlx::PgPool;
 use std::sync::Arc;
 
 pub struct StageReordering {
     pool: Arc<PgPool>,
-    project: Project,
+    project_id: ProjectId,
     parent_position: i32,
     from: i32,
     to: i32,
 }
 
 impl StageReordering {
-    pub fn new(pool: Arc<PgPool>, project: Project, from: i32, to: i32) -> Self {
-        Self { pool, project, parent_position: 0, from, to }
+    pub fn new(pool: Arc<PgPool>, project_id: ProjectId, from: i32, to: i32) -> Self {
+        Self {
+            pool,
+            project_id,
+            parent_position: 0,
+            from,
+            to,
+        }
     }
 
-    pub fn sub(pool: Arc<PgPool>, project: Project, parent_position: i32, from: i32, to: i32) -> Self {
-        Self { pool, project, parent_position, from, to }
+    pub fn sub(
+        pool: Arc<PgPool>,
+        project_id: ProjectId,
+        parent_position: i32,
+        from: i32,
+        to: i32,
+    ) -> Self {
+        Self {
+            pool,
+            project_id,
+            parent_position,
+            from,
+            to,
+        }
     }
 }
 
@@ -35,7 +53,7 @@ impl Task for StageReordering {
         let row: Row = sqlx::query_as(
             "SELECT MAX(position) AS max FROM stages WHERE project_id = $1 AND parent_position = $2",
         )
-        .bind(self.project.id())
+            .bind(self.project_id.id())
         .bind(self.parent_position)
         .fetch_one(&mut *transaction)
         .await?;
@@ -56,7 +74,7 @@ impl Task for StageReordering {
             "UPDATE stages SET position = -position \
              WHERE project_id = $1 AND parent_position = $2 AND position BETWEEN $3 AND $4",
         )
-        .bind(self.project.id())
+        .bind(self.project_id.id())
         .bind(self.parent_position)
         .bind(lo)
         .bind(hi)
@@ -67,7 +85,7 @@ impl Task for StageReordering {
                 "UPDATE stages SET parent_position = -parent_position \
                  WHERE project_id = $1 AND parent_position BETWEEN $2 AND $3",
             )
-            .bind(self.project.id())
+            .bind(self.project_id.id())
             .bind(lo)
             .bind(hi)
             .execute(&mut *transaction)
@@ -78,7 +96,7 @@ impl Task for StageReordering {
             "UPDATE stages SET position = $3 \
              WHERE project_id = $1 AND parent_position = $2 AND position = $4",
         )
-        .bind(self.project.id())
+        .bind(self.project_id.id())
         .bind(self.parent_position)
         .bind(to)
         .bind(-self.from)
@@ -88,7 +106,7 @@ impl Task for StageReordering {
             sqlx::query(
                 "UPDATE stages SET parent_position = $2 WHERE project_id = $1 AND parent_position = $3",
             )
-            .bind(self.project.id())
+                .bind(self.project_id.id())
             .bind(to)
             .bind(-self.from)
             .execute(&mut *transaction)
@@ -104,7 +122,7 @@ impl Task for StageReordering {
             "UPDATE stages SET position = -position + $5 \
              WHERE project_id = $1 AND parent_position = $2 AND position BETWEEN $3 AND $4",
         )
-        .bind(self.project.id())
+        .bind(self.project_id.id())
         .bind(self.parent_position)
         .bind(lower)
         .bind(upper)
@@ -116,7 +134,7 @@ impl Task for StageReordering {
                 "UPDATE stages SET parent_position = -parent_position + $4 \
                  WHERE project_id = $1 AND parent_position BETWEEN $2 AND $3",
             )
-            .bind(self.project.id())
+            .bind(self.project_id.id())
             .bind(lower)
             .bind(upper)
             .bind(delta)

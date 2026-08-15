@@ -1,11 +1,11 @@
 use crate::endpoint::api_error::ApiError;
 use crate::endpoint::auth_header::AuthHeader;
-use crate::model::project::project::Project;
-use crate::model::project::stage::Stage;
 use crate::model::audit::AuditAction;
 use crate::model::audit::AuditedTask;
 use crate::model::contract::task::Task;
 use crate::model::project::logged_stage_rename::LoggedStageRename;
+use crate::model::project::project::ProjectId;
+use crate::model::project::stage::StageId;
 use crate::state::AppState;
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, web};
@@ -27,7 +27,7 @@ pub async fn patch(
         .user()
         .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
     let (project_id, position) = path.into_inner();
-    let stage = Stage::new(Project::new(project_id), position);
+    let stage_id = StageId::new(ProjectId::new(project_id), position);
     let title = body.title.trim().to_string();
     AuditedTask::new(
         user.clone(),
@@ -35,11 +35,10 @@ pub async fn patch(
             new_title: title.clone(),
         },
         format!("{project_id}:{position}"),
-        LoggedStageRename::new(state.pool.clone(), stage, user, title),
+        LoggedStageRename::new(state.pool.clone(), stage_id, user, title),
     )
     .perform()
     .await
     .map_err(|e| ApiError::Internal(e.to_string()))?;
     Ok(HttpResponse::Ok().finish())
 }
-

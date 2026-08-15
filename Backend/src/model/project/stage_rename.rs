@@ -1,18 +1,22 @@
 use crate::model::contract::box_error::BoxError;
 use crate::model::contract::task::Task;
-use crate::model::project::stage::Stage;
+use crate::model::project::stage::StageId;
 use sqlx::PgPool;
 use std::sync::Arc;
 
 pub struct StageRename {
     pool: Arc<PgPool>,
-    stage: Stage,
+    stage_id: StageId,
     title: String,
 }
 
 impl StageRename {
-    pub fn new(pool: Arc<PgPool>, stage: Stage, title: String) -> Self {
-        Self { pool, stage, title }
+    pub fn new(pool: Arc<PgPool>, stage_id: StageId, title: String) -> Self {
+        Self {
+            pool,
+            stage_id,
+            title,
+        }
     }
 }
 
@@ -22,9 +26,9 @@ impl Task for StageRename {
 
     async fn perform(&self) -> Result<Self::Output, BoxError> {
         sqlx::query("UPDATE stages SET title = $4 WHERE project_id = $1 AND parent_position = $2 AND position = $3")
-            .bind(self.stage.project().id())
-            .bind(self.stage.parent_position())
-            .bind(self.stage.position())
+            .bind(self.stage_id.project_id().id())
+            .bind(self.stage_id.parent_position())
+            .bind(self.stage_id.position())
             .bind(&self.title)
             .execute(self.pool.as_ref())
             .await?;

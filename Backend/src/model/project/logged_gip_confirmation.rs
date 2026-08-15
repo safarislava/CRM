@@ -4,26 +4,26 @@ use crate::model::contract::task::Task;
 use crate::model::contract::value::Value;
 use crate::model::project::gip_confirmation_text::GipConfirmationText;
 use crate::model::project::notified_gip_confirmation::NotifiedGipConfirmation;
-use crate::model::project::stage::Stage;
+use crate::model::project::stage::StageId;
 use crate::model::project::stage_gip_confirmed_receipt::StageGipConfirmedReceipt;
 use crate::model::project::system_comment_creation::SystemCommentCreation;
-use crate::model::user::user::User;
+use crate::model::user::user::UserId;
 use sqlx::PgPool;
 use std::sync::Arc;
 
 pub struct LoggedGipConfirmation {
     pool: Arc<PgPool>,
-    stage: Stage,
-    user: User,
+    stage_id: StageId,
+    user_id: UserId,
     confirmed: bool,
 }
 
 impl LoggedGipConfirmation {
-    pub fn new(pool: Arc<PgPool>, stage: Stage, user: User, confirmed: bool) -> Self {
+    pub fn new(pool: Arc<PgPool>, stage_id: StageId, user_id: UserId, confirmed: bool) -> Self {
         Self {
             pool,
-            stage,
-            user,
+            stage_id,
+            user_id,
             confirmed,
         }
     }
@@ -34,18 +34,18 @@ impl Task for LoggedGipConfirmation {
     type Output = ();
 
     async fn perform(&self) -> Result<Self::Output, BoxError> {
-        let old = StageGipConfirmedReceipt::new(self.pool.clone(), self.stage.clone())
+        let old = StageGipConfirmedReceipt::new(self.pool.clone(), self.stage_id.clone())
             .value()
             .await?;
-        NotifiedGipConfirmation::new(self.pool.clone(), self.stage.clone(), self.confirmed)
+        NotifiedGipConfirmation::new(self.pool.clone(), self.stage_id.clone(), self.confirmed)
             .perform()
             .await?;
         if old != Some(self.confirmed) {
             let text = GipConfirmationText::new(self.confirmed).text();
             let _ = SystemCommentCreation::new(
                 self.pool.clone(),
-                self.stage.clone(),
-                self.user.clone(),
+                self.stage_id.clone(),
+                self.user_id.clone(),
                 text,
             )
             .perform()

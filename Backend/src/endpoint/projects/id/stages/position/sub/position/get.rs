@@ -1,8 +1,8 @@
 use crate::endpoint::api_error::ApiError;
 use crate::model::project::contract::json::Json;
 use crate::model::project::detailed_stage::DetailedStage;
-use crate::model::project::project::Project;
-use crate::model::project::stage::Stage;
+use crate::model::project::project::ProjectId;
+use crate::model::project::stage::StageId;
 use crate::state::AppState;
 use actix_web::{HttpResponse, web};
 use uuid::Uuid;
@@ -14,7 +14,7 @@ pub async fn get(
     let (project_id, parent_position, position) = path.into_inner();
     let data = DetailedStage::new(
         state.pool.clone(),
-        Stage::new_substage(Project::new(project_id), parent_position, position),
+        StageId::new_substage(ProjectId::new(project_id), parent_position, position),
     )
     .json()
     .await

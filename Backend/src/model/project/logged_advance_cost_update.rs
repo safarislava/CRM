@@ -4,26 +4,26 @@ use crate::model::contract::task::Task;
 use crate::model::contract::value::Value;
 use crate::model::project::advance_cost_change_text::AdvanceCostChangeText;
 use crate::model::project::advance_cost_update::AdvanceCostUpdate;
-use crate::model::project::stage::Stage;
+use crate::model::project::stage::StageId;
 use crate::model::project::stage_advance_cost_receipt::StageAdvanceCostReceipt;
 use crate::model::project::system_comment_creation::SystemCommentCreation;
-use crate::model::user::user::User;
+use crate::model::user::user::UserId;
 use sqlx::PgPool;
 use std::sync::Arc;
 
 pub struct LoggedAdvanceCostUpdate {
     pool: Arc<PgPool>,
-    stage: Stage,
-    user: User,
+    stage_id: StageId,
+    user_id: UserId,
     cost: Option<i32>,
 }
 
 impl LoggedAdvanceCostUpdate {
-    pub fn new(pool: Arc<PgPool>, stage: Stage, user: User, cost: Option<i32>) -> Self {
+    pub fn new(pool: Arc<PgPool>, stage_id: StageId, user_id: UserId, cost: Option<i32>) -> Self {
         Self {
             pool,
-            stage,
-            user,
+            stage_id,
+            user_id,
             cost,
         }
     }
@@ -34,10 +34,10 @@ impl Task for LoggedAdvanceCostUpdate {
     type Output = ();
 
     async fn perform(&self) -> Result<Self::Output, BoxError> {
-        let old = StageAdvanceCostReceipt::new(self.pool.clone(), self.stage.clone())
+        let old = StageAdvanceCostReceipt::new(self.pool.clone(), self.stage_id.clone())
             .value()
             .await?;
-        AdvanceCostUpdate::new(self.pool.clone(), self.stage.clone(), self.cost)
+        AdvanceCostUpdate::new(self.pool.clone(), self.stage_id.clone(), self.cost)
             .perform()
             .await?;
         if let Some(old_cost) = old {
@@ -45,8 +45,8 @@ impl Task for LoggedAdvanceCostUpdate {
                 let text = AdvanceCostChangeText::new(old_cost, self.cost).text();
                 let _ = SystemCommentCreation::new(
                     self.pool.clone(),
-                    self.stage.clone(),
-                    self.user.clone(),
+                    self.stage_id.clone(),
+                    self.user_id.clone(),
                     text,
                 )
                 .perform()

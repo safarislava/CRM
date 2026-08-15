@@ -3,7 +3,7 @@ use crate::model::session::refresh_token::RefreshToken;
 use crate::model::session::user_id_receipt::UserIdReceipt;
 use crate::model::user::contract::protected_user::ProtectedUser;
 use crate::model::user::contract::user_verification::VerificationError;
-use crate::model::user::user::User;
+use crate::model::user::user::UserId;
 use sqlx::PgPool;
 use std::sync::Arc;
 
@@ -23,12 +23,12 @@ impl JwtProtectedUser {
 
 #[async_trait::async_trait]
 impl ProtectedUser for JwtProtectedUser {
-    async fn unprotected(&self) -> Result<User, VerificationError> {
+    async fn unprotected(&self) -> Result<UserId, VerificationError> {
         match UserIdReceipt::new(self.pool.clone(), self.refresh_token.id())
             .value()
             .await
         {
-            Ok(Some(id)) => Ok(User::new(id)),
+            Ok(Some(id)) => Ok(UserId::new(id)),
             Ok(None) => Err(VerificationError::Wrong),
             Err(_) => Err(VerificationError::Internal),
         }

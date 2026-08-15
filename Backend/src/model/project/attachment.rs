@@ -1,11 +1,11 @@
 use uuid::Uuid;
 
-#[derive(Clone)]
-pub struct Attachment {
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct AttachmentId {
     id: Uuid,
 }
 
-impl Attachment {
+impl AttachmentId {
     pub fn new(id: Uuid) -> Self {
         Self { id }
     }

@@ -1,12 +1,12 @@
 use std::fmt;
 use uuid::Uuid;
 
-#[derive(Clone, Debug)]
-pub struct User {
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct UserId {
     id: Uuid,
 }
 
-impl User {
+impl UserId {
     pub fn new(id: Uuid) -> Self {
         Self { id }
     }
@@ -16,7 +16,7 @@ impl User {
     }
 }
 
-impl fmt::Display for User {
+impl fmt::Display for UserId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.id)
     }

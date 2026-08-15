@@ -1,11 +1,10 @@
-use uuid::Uuid;
-use crate::model::project::project::Project;
+use crate::model::project::project::ProjectId;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum StageCacheKey {
-    ByProject(Project),
+    ByProjectId(ProjectId),
     ByPosition {
-        project: Project,
+        project_id: ProjectId,
         parent_position: i32,
         position: i32,
     },

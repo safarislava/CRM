@@ -1,7 +1,7 @@
 use crate::endpoint::api_error::ApiError;
-use crate::model::project::project::Project;
-use crate::model::project::stage::Stage;
 use crate::model::contract::task::Task;
+use crate::model::project::project::ProjectId;
+use crate::model::project::stage::StageId;
 use crate::model::project::stage_removal::StageRemoval;
 use crate::state::AppState;
 use actix_web::{HttpResponse, web};
@@ -14,7 +14,7 @@ pub async fn delete(
     let (project_id, parent_position, position) = path.into_inner();
     StageRemoval::new(
         state.pool.clone(),
-        Stage::new_substage(Project::new(project_id), parent_position, position),
+        StageId::new_substage(ProjectId::new(project_id), parent_position, position),
     )
     .perform()
     .await
