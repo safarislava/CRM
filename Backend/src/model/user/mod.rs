@@ -4,6 +4,7 @@ pub mod cached_username_search;
 pub mod contract;
 pub mod detailed_user;
 pub mod email_update;
+pub mod invalidating_username_update;
 pub mod invite;
 pub mod invite_consumption;
 pub mod invite_creation;
