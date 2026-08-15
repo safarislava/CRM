@@ -2,7 +2,7 @@ use crate::model::cache::contract::cache::Cache;
 use crate::model::contract::box_error::BoxError;
 use crate::model::contract::printer::Printer;
 use crate::model::contract::project_media::ProjectMedia;
-use crate::model::project::cache_key::ProjectCacheKey;
+use crate::model::project::project_cache_key::ProjectCacheKey;
 use crate::model::project::collecting_project_media::CollectingProjectMedia;
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};

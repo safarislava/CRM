@@ -1,7 +1,7 @@
 use crate::model::cache::contract::cache::Cache;
 use crate::model::contract::box_error::BoxError;
 use crate::model::credential::contract::username::Username;
-use crate::model::user::cache_key::UserCacheKey;
+use crate::model::user::user_cache_key::UserCacheKey;
 use crate::model::user::contract::username_search::UsernameSearch;
 use crate::model::user::user::User;
 use async_trait::async_trait;

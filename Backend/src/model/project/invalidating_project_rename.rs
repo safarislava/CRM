@@ -1,7 +1,7 @@
 use crate::model::cache::contract::cache::Cache;
 use crate::model::contract::box_error::BoxError;
 use crate::model::contract::task::Task;
-use crate::model::project::cache_key::ProjectCacheKey;
+use crate::model::project::project_cache_key::ProjectCacheKey;
 use crate::model::project::cached_project_summaries::ProjectSummaryItem;
 use async_trait::async_trait;
 use uuid::Uuid;

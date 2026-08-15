@@ -1,5 +1,5 @@
 pub mod admin;
-pub mod cache_key;
+pub mod user_cache_key;
 pub mod cached_username_search;
 pub mod contract;
 pub mod detailed_user;
