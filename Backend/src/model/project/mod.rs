@@ -55,6 +55,8 @@ pub mod project_removal;
 pub mod project_rename;
 pub mod project_summaries;
 pub mod rename_text;
+pub mod cached_stage_summaries;
+pub mod collecting_stage_media;
 pub mod stage;
 pub mod stage_advance_cost_receipt;
 pub mod stage_cache_key;
