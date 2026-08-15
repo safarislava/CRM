@@ -36,6 +36,7 @@ pub mod gip_confirmation_text;
 pub mod invalidating_project_registration;
 pub mod invalidating_project_removal;
 pub mod invalidating_project_rename;
+pub mod invalidating_stage_task;
 pub mod logged_act_upload;
 pub mod logged_advance_cost_update;
 pub mod logged_advance_payment_confirmation;
