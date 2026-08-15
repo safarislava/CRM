@@ -6,19 +6,20 @@ use crate::model::project::collecting_stage_media::{CollectingStageMedia, StageS
 use crate::model::project::stage_cache_key::StageCacheKey;
 use async_trait::async_trait;
 use uuid::Uuid;
+use crate::model::project::project::Project;
 
 pub struct CachedStageSummaries<T, C> {
     origin: T,
     cache: C,
-    project_id: Uuid,
+    project: Project,
 }
 
 impl<T, C> CachedStageSummaries<T, C> {
-    pub fn new(origin: T, cache: C, project_id: Uuid) -> Self {
+    pub fn new(origin: T, cache: C, project: Project) -> Self {
         Self {
             origin,
             cache,
-            project_id,
+            project,
         }
     }
 }
@@ -31,7 +32,7 @@ where
     M: StageMedia + Send + Sync,
 {
     async fn print(&self, media: &mut M) -> Result<(), BoxError> {
-        let key = StageCacheKey::ByProjectId(self.project_id);
+        let key = StageCacheKey::ByProject(self.project);
         let items = match self.cache.value(&key).await? {
             Some(cached) => cached,
             None => {
