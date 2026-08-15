@@ -9,6 +9,14 @@ pub struct MemoryCache<K, V> {
     items: Arc<RwLock<HashMap<K, V>>>,
 }
 
+impl<K, V> Clone for MemoryCache<K, V> {
+    fn clone(&self) -> Self {
+        Self {
+            items: Arc::clone(&self.items),
+        }
+    }
+}
+
 impl<K, V> MemoryCache<K, V> {
     pub fn new() -> Self {
         Self {
