@@ -17,7 +17,11 @@ impl PasswordUpdate {
         protected_user: Box<dyn ProtectedUser>,
         new_password: Box<dyn Hash>,
     ) -> Self {
-        Self { pool, protected_user, new_password }
+        Self {
+            pool,
+            protected_user,
+            new_password,
+        }
     }
 }
 
@@ -27,7 +31,12 @@ impl Task for PasswordUpdate {
 
     async fn perform(&self) -> Result<(), BoxError> {
         let (user, hash) = futures_util::try_join!(
-            async { self.protected_user.unprotected().await.map_err(BoxError::from) },
+            async {
+                self.protected_user
+                    .unprotected()
+                    .await
+                    .map_err(BoxError::from)
+            },
             async { self.new_password.value().await.map_err(BoxError::from) }
         )?;
         sqlx::query("UPDATE users SET password_hash = $2 WHERE id = $1")

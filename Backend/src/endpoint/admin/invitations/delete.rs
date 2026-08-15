@@ -1,6 +1,6 @@
 use crate::endpoint::api_error::ApiError;
-use crate::model::user::admin::invitation_revocation::InvitationRevocation;
 use crate::model::contract::task::Task;
+use crate::model::user::admin::invitation_revocation::InvitationRevocation;
 use crate::state::AppState;
 use actix_web::{HttpResponse, web};
 use uuid::Uuid;

@@ -1,6 +1,7 @@
 use crate::endpoint::api_error::ApiError;
 use crate::endpoint::auth_header::AuthHeader;
 use crate::model::contract::task::Task;
+use crate::model::project::invalidating_stage_task::InvalidatingStageTask;
 use crate::model::project::logged_gip_confirmation::LoggedGipConfirmation;
 use crate::model::project::project::ProjectId;
 use crate::model::project::stage::StageId;
@@ -25,11 +26,16 @@ pub async fn patch(
         .user()
         .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
     let (project_id, parent_position, position) = path.into_inner();
-    LoggedGipConfirmation::new(
-        state.pool.clone(),
-        StageId::new_substage(ProjectId::new(project_id), parent_position, position),
-        user,
-        body.confirmed,
+    let project_id_obj = ProjectId::new(project_id);
+    InvalidatingStageTask::new(
+        LoggedGipConfirmation::new(
+            state.pool.clone(),
+            StageId::new_substage(ProjectId::new(project_id), parent_position, position),
+            user,
+            body.confirmed,
+        ),
+        state.stage_cache.clone(),
+        project_id_obj,
     )
     .perform()
     .await

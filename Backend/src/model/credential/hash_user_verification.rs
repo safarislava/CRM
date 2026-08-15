@@ -1,6 +1,6 @@
 use crate::model::credential::contract::hash::Hash;
-use crate::model::user::contract::user_verification::{UserVerification, VerificationError};
 use crate::model::credential::contract::password::Password;
+use crate::model::user::contract::user_verification::{UserVerification, VerificationError};
 
 pub struct HashUserVerification {
     hash: Box<dyn Hash>,
@@ -9,15 +9,25 @@ pub struct HashUserVerification {
 
 impl HashUserVerification {
     pub fn new(hash: impl Hash, password: impl Password) -> Self {
-        Self { hash: Box::new(hash), password: Box::new(password) }
+        Self {
+            hash: Box::new(hash),
+            password: Box::new(password),
+        }
     }
 }
 
 #[async_trait::async_trait]
 impl UserVerification for HashUserVerification {
     async fn status(&self) -> Result<(), VerificationError> {
-        let hash = self.hash.value().await.map_err(|_| VerificationError::Internal)?;
-        let password = self.password.value().map_err(|_| VerificationError::Wrong)?;
+        let hash = self
+            .hash
+            .value()
+            .await
+            .map_err(|_| VerificationError::Internal)?;
+        let password = self
+            .password
+            .value()
+            .map_err(|_| VerificationError::Wrong)?;
         match actix_web::rt::task::spawn_blocking(move || bcrypt::verify(&password, &hash)).await {
             Ok(Ok(true)) => Ok(()),
             Ok(Ok(false)) => Err(VerificationError::Wrong),

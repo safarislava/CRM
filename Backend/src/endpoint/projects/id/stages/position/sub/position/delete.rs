@@ -1,5 +1,6 @@
 use crate::endpoint::api_error::ApiError;
 use crate::model::contract::task::Task;
+use crate::model::project::invalidating_stage_task::InvalidatingStageTask;
 use crate::model::project::project::ProjectId;
 use crate::model::project::stage::StageId;
 use crate::model::project::stage_removal::StageRemoval;
@@ -12,9 +13,14 @@ pub async fn delete(
     path: web::Path<(Uuid, i32, i32)>,
 ) -> Result<HttpResponse, ApiError> {
     let (project_id, parent_position, position) = path.into_inner();
-    StageRemoval::new(
-        state.pool.clone(),
-        StageId::new_substage(ProjectId::new(project_id), parent_position, position),
+    let project_id_obj = ProjectId::new(project_id);
+    InvalidatingStageTask::new(
+        StageRemoval::new(
+            state.pool.clone(),
+            StageId::new_substage(ProjectId::new(project_id), parent_position, position),
+        ),
+        state.stage_cache.clone(),
+        project_id_obj,
     )
     .perform()
     .await

@@ -3,11 +3,10 @@ use crate::endpoint::auth_header::AuthHeader;
 use crate::model::audit::AuditAction;
 use crate::model::audit::AuditedTask;
 use crate::model::contract::task::Task;
-use crate::model::user::invite_creation::InviteCreation;
 use crate::model::user::contract::invite::Invite;
+use crate::model::user::invite_creation::InviteCreation;
 use crate::state::AppState;
 use actix_web::{HttpRequest, HttpResponse, web};
-
 
 pub async fn post(
     state: web::Data<AppState>,

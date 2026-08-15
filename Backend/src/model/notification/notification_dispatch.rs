@@ -1,5 +1,5 @@
-use crate::model::contract::box_error::BoxError;
 use crate::mail::Mailer;
+use crate::model::contract::box_error::BoxError;
 use crate::model::contract::task::Task;
 use crate::model::notification::notification_dequeue::NotificationDequeue;
 use crate::model::notification::notification_send::NotificationSend;
@@ -22,9 +22,14 @@ impl Task for NotificationDispatch {
     type Output = ();
 
     async fn perform(&self) -> Result<Self::Output, BoxError> {
-        let notifications = NotificationDequeue::new(self.pool.clone()).perform().await?;
+        let notifications = NotificationDequeue::new(self.pool.clone())
+            .perform()
+            .await?;
         if !notifications.is_empty() {
-            tracing::info!(count = notifications.len(), "Queue: Dequeued notification(s) for dispatching");
+            tracing::info!(
+                count = notifications.len(),
+                "Queue: Dequeued notification(s) for dispatching"
+            );
         }
         for notification in notifications {
             NotificationSend::new(self.pool.clone(), self.mailer.clone(), notification)

@@ -24,6 +24,7 @@ impl<K, V> MemoryCache<K, V> {
         }
     }
 
+    #[allow(dead_code)]
     pub fn with_items(items: Arc<RwLock<HashMap<K, V>>>) -> Self {
         Self { items }
     }

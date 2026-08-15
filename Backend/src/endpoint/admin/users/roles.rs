@@ -1,6 +1,6 @@
 use crate::endpoint::api_error::ApiError;
-use crate::model::user::admin::user_role_update::UserRoleUpdate;
 use crate::model::contract::task::Task;
+use crate::model::user::admin::user_role_update::UserRoleUpdate;
 use crate::model::user::role::Role;
 use crate::state::AppState;
 use actix_web::{HttpResponse, web};

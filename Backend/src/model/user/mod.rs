@@ -1,5 +1,4 @@
 pub mod admin;
-pub mod user_cache_key;
 pub mod cached_username_search;
 pub mod contract;
 pub mod detailed_user;
@@ -15,6 +14,7 @@ pub mod role;
 pub mod roles_update;
 pub mod tokens_issuance;
 pub mod user;
+pub mod user_cache_key;
 pub mod username_update;
 pub mod users;
 pub mod verification_admin;

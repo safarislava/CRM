@@ -1,18 +1,20 @@
 use crate::model::cache::contract::cache::Cache;
+use crate::model::cache::invalidating_task::InvalidatingTask;
 use crate::model::contract::box_error::BoxError;
 use crate::model::contract::task::Task;
-use crate::model::project::project_cache_key::ProjectCacheKey;
 use crate::model::project::cached_project_summaries::ProjectSummaryItem;
+use crate::model::project::project_cache_key::ProjectCacheKey;
 use async_trait::async_trait;
 
 pub struct InvalidatingProjectRegistration<T, C> {
-    origin: T,
-    cache: C,
+    task: InvalidatingTask<T, C, ProjectCacheKey, Vec<ProjectSummaryItem>>,
 }
 
 impl<T, C> InvalidatingProjectRegistration<T, C> {
     pub fn new(origin: T, cache: C) -> Self {
-        Self { origin, cache }
+        Self {
+            task: InvalidatingTask::single(origin, cache, ProjectCacheKey::AllSummaries),
+        }
     }
 }
 
@@ -25,8 +27,6 @@ where
     type Output = ();
 
     async fn perform(&self) -> Result<(), BoxError> {
-        self.origin.perform().await?;
-        self.cache.evict(&ProjectCacheKey::AllSummaries).await?;
-        Ok(())
+        self.task.perform().await
     }
 }

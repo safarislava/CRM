@@ -1,6 +1,7 @@
 use crate::endpoint::api_error::ApiError;
 use crate::endpoint::json_stage_media::JsonStageMedia;
 use crate::model::contract::printer::Printer;
+use crate::model::project::cached_stage_summaries::CachedStageSummaries;
 use crate::model::project::project::ProjectId;
 use crate::model::project::stage_summaries::StageSummaries;
 use crate::state::AppState;
@@ -12,9 +13,14 @@ pub async fn get(
     path: web::Path<Uuid>,
 ) -> Result<HttpResponse, ApiError> {
     let mut media = JsonStageMedia::default();
-    StageSummaries::new(state.pool.clone(), ProjectId::new(path.into_inner()))
-        .print(&mut media)
-        .await
-        .map_err(|e| ApiError::Internal(e.to_string()))?;
+    let project_id = ProjectId::new(path.into_inner());
+    CachedStageSummaries::new(
+        StageSummaries::new(state.pool.clone(), project_id),
+        state.stage_cache.clone(),
+        project_id,
+    )
+    .print(&mut media)
+    .await
+    .map_err(|e| ApiError::Internal(e.to_string()))?;
     Ok(HttpResponse::Ok().json(media))
 }

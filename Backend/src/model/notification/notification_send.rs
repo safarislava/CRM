@@ -33,10 +33,14 @@ impl Task for NotificationSend {
             self.notification.subject(),
             self.notification.body(),
         ) else {
-            tracing::warn!("Queue: Notification skipped due to missing required fields (role, subject, or body)");
+            tracing::warn!(
+                "Queue: Notification skipped due to missing required fields (role, subject, or body)"
+            );
             return Ok(());
         };
-        let emails = RoleRecipients::new(self.pool.clone(), role.clone()).items().await?;
+        let emails = RoleRecipients::new(self.pool.clone(), role.clone())
+            .items()
+            .await?;
         tracing::debug!(role = ?role, count = emails.len(), "Queue: Processing notification for role");
         let sends = emails.iter().map(|email| {
             let mailer = self.mailer.clone();

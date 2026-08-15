@@ -1,14 +1,14 @@
 use crate::endpoint::api_error::ApiError;
+use crate::model::audit::AuditAction;
+use crate::model::audit::AuditedTask;
+use crate::model::contract::task::Task;
 use crate::model::credential::hashed_password::HashedPassword;
 use crate::model::credential::raw_password::RawPassword;
 use crate::model::credential::raw_username::RawUsername;
 use crate::model::credential::valid_password::ValidPassword;
 use crate::model::credential::valid_username::ValidUsername;
-use crate::model::audit::AuditAction;
-use crate::model::audit::AuditedTask;
-use crate::model::contract::task::Task;
-use crate::model::user::invite_consumption::{InviteConsumption, InviteStatus};
 use crate::model::user::invite::InviteCode;
+use crate::model::user::invite_consumption::{InviteConsumption, InviteStatus};
 use crate::state::AppState;
 use actix_web::{HttpResponse, web};
 use uuid::Uuid;

@@ -35,8 +35,13 @@ impl Task for DeadlineDigestNotification {
             return Ok(());
         }
         let body = digest.text().await?;
-        let recipients = RoleRecipients::new(self.pool.clone(), Role::Gip).items().await?;
-        tracing::info!(recipients_count = recipients.len(), "Deadline digest: Sending burning deadlines digest");
+        let recipients = RoleRecipients::new(self.pool.clone(), Role::Gip)
+            .items()
+            .await?;
+        tracing::info!(
+            recipients_count = recipients.len(),
+            "Deadline digest: Sending burning deadlines digest"
+        );
         let sends = recipients.iter().map(|email| {
             let mailer = self.mailer.clone();
             let body = body.clone();

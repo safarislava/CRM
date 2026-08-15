@@ -10,7 +10,11 @@ pub struct BurningDeadline {
 
 impl BurningDeadline {
     pub fn new(project_title: String, stage_title: String, deadline: DateTime<Utc>) -> Self {
-        Self { project_title, stage_title, deadline }
+        Self {
+            project_title,
+            stage_title,
+            deadline,
+        }
     }
 }
 

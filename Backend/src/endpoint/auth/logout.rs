@@ -1,8 +1,8 @@
+use crate::model::contract::task::Task;
 use crate::model::session::contract::jti_source::JtiSource;
 use crate::model::session::refresh_token::RefreshToken;
-use crate::model::session::signed_refresh_token::SignedRefreshToken;
-use crate::model::contract::task::Task;
 use crate::model::session::refresh_token_revocation::RefreshTokenRevocation;
+use crate::model::session::signed_refresh_token::SignedRefreshToken;
 use crate::state::AppState;
 use actix_web::cookie::{Cookie, SameSite};
 use actix_web::{HttpRequest, HttpResponse, Responder, web};

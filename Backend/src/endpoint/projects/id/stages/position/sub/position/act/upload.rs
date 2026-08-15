@@ -2,6 +2,7 @@ use crate::endpoint::api_error::ApiError;
 use crate::endpoint::auth_header::AuthHeader;
 use crate::model::contract::task::Task;
 use crate::model::project::file_content::FileContent;
+use crate::model::project::invalidating_stage_task::InvalidatingStageTask;
 use crate::model::project::logged_act_upload::LoggedActUpload;
 use crate::model::project::project::ProjectId;
 use crate::model::project::stage::StageId;
@@ -58,12 +59,16 @@ pub async fn post(
         .map(|kind| kind.mime_type().to_string())
         .unwrap_or_else(|| "application/octet-stream".to_string());
     let file = FileContent::new(filename, mime_type, data);
-    LoggedActUpload::new(
-        state.pool.clone(),
-        state.storage.clone(),
-        stage_id,
-        user,
-        file,
+    InvalidatingStageTask::new(
+        LoggedActUpload::new(
+            state.pool.clone(),
+            state.storage.clone(),
+            stage_id,
+            user,
+            file,
+        ),
+        state.stage_cache.clone(),
+        stage_id.project_id(),
     )
     .perform()
     .await

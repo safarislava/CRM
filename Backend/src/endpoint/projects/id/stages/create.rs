@@ -3,6 +3,7 @@ use crate::endpoint::auth_header::AuthHeader;
 use crate::model::audit::AuditAction;
 use crate::model::audit::AuditedTask;
 use crate::model::contract::task::Task;
+use crate::model::project::invalidating_stage_task::InvalidatingStageTask;
 use crate::model::project::project::ProjectId;
 use crate::model::project::stage_appending::StageAppending;
 use crate::state::AppState;
@@ -25,13 +26,18 @@ pub async fn create(
     let user = request
         .user()
         .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
-    let project_id = path.into_inner();
+    let raw_project_id = path.into_inner();
+    let project_id = ProjectId::new(raw_project_id);
     let title = body.title.clone();
     AuditedTask::new(
         user,
         AuditAction::StageCreate,
-        format!("{project_id}:{title}"),
-        StageAppending::new(state.pool.clone(), ProjectId::new(project_id), title),
+        format!("{raw_project_id}:{title}"),
+        InvalidatingStageTask::new(
+            StageAppending::new(state.pool.clone(), project_id, title),
+            state.stage_cache.clone(),
+            project_id,
+        ),
     )
     .perform()
     .await

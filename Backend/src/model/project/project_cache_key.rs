@@ -1,7 +1,7 @@
-use uuid::Uuid;
+use crate::model::project::project::ProjectId;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum ProjectCacheKey {
     AllSummaries,
-    ById(Uuid),
+    ByProjectId(ProjectId),
 }

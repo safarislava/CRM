@@ -1,7 +1,7 @@
 use crate::model::contract::box_error::BoxError;
-use crate::model::user::contract::user_verification::VerificationError;
 use crate::model::credential::contract::password::PasswordError;
 use crate::model::credential::contract::username::UsernameError;
+use crate::model::user::contract::user_verification::VerificationError;
 use actix_web::HttpResponse;
 use actix_web::http::StatusCode;
 use std::fmt;
@@ -77,4 +77,3 @@ impl actix_web::ResponseError for ApiError {
         HttpResponse::build(status).json(self.to_string())
     }
 }
-

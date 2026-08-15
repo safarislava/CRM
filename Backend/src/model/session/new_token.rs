@@ -1,5 +1,5 @@
-use crate::model::contract::box_error::BoxError;
 use crate::jwt::jwt_secret;
+use crate::model::contract::box_error::BoxError;
 use crate::model::session::claims::Claims;
 use crate::model::session::contract::token::Token;
 use crate::model::session::token_kind::TokenKind;
@@ -16,7 +16,12 @@ pub struct NewToken {
 
 impl NewToken {
     pub fn new(user_id: Uuid, jti: Uuid, kind: TokenKind, expires_at: DateTime<Utc>) -> Self {
-        Self { user_id, jti, kind, expires_at }
+        Self {
+            user_id,
+            jti,
+            kind,
+            expires_at,
+        }
     }
 }
 

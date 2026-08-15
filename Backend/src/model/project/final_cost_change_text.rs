@@ -20,7 +20,10 @@ impl CommentText for FinalCostChangeText {
                 FormattedCost(self.old),
                 FormattedCost(new)
             ),
-            None => format!("Окончательная оплата удалена: {} ₽", FormattedCost(self.old)),
+            None => format!(
+                "Окончательная оплата удалена: {} ₽",
+                FormattedCost(self.old)
+            ),
         }
     }
 }

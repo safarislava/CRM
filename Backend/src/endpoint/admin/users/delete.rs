@@ -1,7 +1,7 @@
 use crate::endpoint::api_error::ApiError;
 use crate::endpoint::auth_header::AuthHeader;
-use crate::model::user::admin::user_deletion::UserDeletion;
 use crate::model::contract::task::Task;
+use crate::model::user::admin::user_deletion::UserDeletion;
 use crate::state::AppState;
 use actix_web::{HttpRequest, HttpResponse, web};
 use uuid::Uuid;

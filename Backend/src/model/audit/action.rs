@@ -45,11 +45,15 @@ impl fmt::Display for AuditAction {
                 write!(f, "deadline_update(deadline: '{d}')")
             }
             Self::AdvanceCostUpdate { new_cost } => {
-                let c = new_cost.map(|v| v.to_string()).unwrap_or_else(|| "none".to_string());
+                let c = new_cost
+                    .map(|v| v.to_string())
+                    .unwrap_or_else(|| "none".to_string());
                 write!(f, "advance_cost_update(cost: {c})")
             }
             Self::FinalCostUpdate { new_cost } => {
-                let c = new_cost.map(|v| v.to_string()).unwrap_or_else(|| "none".to_string());
+                let c = new_cost
+                    .map(|v| v.to_string())
+                    .unwrap_or_else(|| "none".to_string());
                 write!(f, "final_cost_update(cost: {c})")
             }
             Self::GipConfirm { confirmed } => {

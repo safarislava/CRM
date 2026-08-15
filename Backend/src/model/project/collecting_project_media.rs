@@ -1,7 +1,7 @@
 use crate::model::contract::project_media::ProjectMedia;
+use crate::model::project::cached_project_summaries::ProjectSummaryItem;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
-use crate::model::project::cached_project_summaries::ProjectSummaryItem;
 
 #[derive(Clone, Debug, Default)]
 pub struct CollectingProjectMedia {
