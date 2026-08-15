@@ -24,7 +24,7 @@ where
     C: Cache<UserCacheKey, UserId> + Send + Sync,
 {
     async fn found(&self, username: impl Username) -> Result<Option<UserId>, BoxError> {
-        let name = username.value()?;
+        let name = username.value().await?;
         let key = UserCacheKey::ByUsername(name);
         if let Some(user) = self.cache.value(&key).await? {
             return Ok(Some(user));

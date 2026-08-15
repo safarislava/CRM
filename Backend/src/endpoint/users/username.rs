@@ -1,6 +1,8 @@
 use crate::endpoint::api_error::ApiError;
 use crate::endpoint::auth_header::AuthHeader;
 use crate::model::contract::task::Task;
+use crate::model::credential::contract::username::Username;
+use crate::model::credential::db_username::DbUsername;
 use crate::model::credential::raw_username::RawUsername;
 use crate::model::credential::valid_username::ValidUsername;
 use crate::model::user::invalidating_username_update::InvalidatingUsernameUpdate;
@@ -22,13 +24,18 @@ pub async fn patch(
     let user_id = request
         .user()
         .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
-    let new_username_str = body.username.clone();
-    let username = ValidUsername::new(RawUsername::new(new_username_str.clone()));
+    let old_username = DbUsername::new(state.pool.clone(), user_id)
+        .value()
+        .await
+        .map_err(|e| ApiError::Internal(e.to_string()))?;
+    let new_username = body.username.clone();
+    let username = ValidUsername::new(RawUsername::new(new_username.clone()));
     InvalidatingUsernameUpdate::new(
         UsernameUpdate::new(state.pool.clone(), user_id, username),
         state.user_cache.clone(),
-        "",
-        new_username_str,
+        user_id,
+        old_username,
+        new_username,
     )
     .perform()
     .await?;

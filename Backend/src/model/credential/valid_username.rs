@@ -1,4 +1,5 @@
 use crate::model::credential::contract::username::{Username, UsernameError};
+use async_trait::async_trait;
 
 pub struct ValidUsername(Box<dyn Username>);
 
@@ -8,9 +9,10 @@ impl ValidUsername {
     }
 }
 
+#[async_trait]
 impl Username for ValidUsername {
-    fn value(&self) -> Result<String, UsernameError> {
-        let content = self.0.value()?;
+    async fn value(&self) -> Result<String, UsernameError> {
+        let content = self.0.value().await?;
         let len = content.chars().count();
         if len < 3 {
             return Err(UsernameError::TooShort);

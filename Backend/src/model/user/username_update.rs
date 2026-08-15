@@ -28,7 +28,7 @@ impl Task for UsernameUpdate {
     async fn perform(&self) -> Result<(), BoxError> {
         let result = sqlx::query("UPDATE users SET username = $2 WHERE id = $1")
             .bind(self.user_id.id())
-            .bind(self.new_username.value()?)
+            .bind(self.new_username.value().await?)
             .execute(self.pool.as_ref())
             .await;
         match result {

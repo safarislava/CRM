@@ -21,7 +21,7 @@ impl Users {
 impl UsernameSearch for Users {
     async fn found(&self, username: impl Username) -> Result<Option<UserId>, BoxError> {
         let id = sqlx::query_scalar::<_, Uuid>("SELECT id FROM users WHERE username = $1")
-            .bind(username.value()?)
+            .bind(username.value().await?)
             .fetch_optional(self.pool.as_ref())
             .await?;
 

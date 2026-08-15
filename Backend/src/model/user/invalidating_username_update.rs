@@ -14,6 +14,7 @@ impl<T, C> InvalidatingUsernameUpdate<T, C> {
     pub fn new(
         origin: T,
         cache: C,
+        user_id: UserId,
         old_username: impl Into<String>,
         new_username: impl Into<String>,
     ) -> Self {
@@ -23,7 +24,11 @@ impl<T, C> InvalidatingUsernameUpdate<T, C> {
             task: InvalidatingTask::new(
                 origin,
                 cache,
-                vec![UserCacheKey::ByUsername(old), UserCacheKey::ByUsername(new)],
+                vec![
+                    UserCacheKey::ByUsername(old),
+                    UserCacheKey::ByUsername(new),
+                    UserCacheKey::ById(user_id),
+                ],
             ),
         }
     }

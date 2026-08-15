@@ -54,7 +54,7 @@ impl Task for InviteConsumption {
         }
         let result =
             sqlx::query("INSERT INTO users (username, password_hash, email) VALUES ($1, $2, $3)")
-                .bind(self.username.value()?)
+                .bind(self.username.value().await?)
                 .bind(self.password.value().await?)
                 .bind(&self.email)
                 .execute(&mut *transaction)

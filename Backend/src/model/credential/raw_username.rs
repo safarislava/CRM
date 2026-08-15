@@ -1,4 +1,5 @@
 use crate::model::credential::contract::username::{Username, UsernameError};
+use async_trait::async_trait;
 
 pub struct RawUsername(String);
 
@@ -8,8 +9,9 @@ impl RawUsername {
     }
 }
 
+#[async_trait]
 impl Username for RawUsername {
-    fn value(&self) -> Result<String, UsernameError> {
+    async fn value(&self) -> Result<String, UsernameError> {
         Ok(self.0.clone())
     }
 }
