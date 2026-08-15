@@ -5,7 +5,6 @@ use crate::model::contract::stage_media::StageMedia;
 use crate::model::project::collecting_stage_media::{CollectingStageMedia, StageSummaryItem};
 use crate::model::project::stage_cache_key::StageCacheKey;
 use async_trait::async_trait;
-use uuid::Uuid;
 use crate::model::project::project::Project;
 
 pub struct CachedStageSummaries<T, C> {

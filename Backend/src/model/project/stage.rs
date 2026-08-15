@@ -1,6 +1,6 @@
 use crate::model::project::project::Project;
 
-#[derive(Clone)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct Stage {
     project: Project,
     parent_position: i32,
@@ -17,7 +17,7 @@ impl Stage {
     }
 
     pub fn project(&self) -> Project {
-        self.project.clone()
+        self.project
     }
 
     pub fn parent_position(&self) -> i32 {
