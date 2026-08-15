@@ -1,4 +1,6 @@
-use crate::model::project::contract::list::List;
+use crate::model::contract::box_error::BoxError;
+use crate::model::contract::deadline_media::DeadlineMedia;
+use crate::model::contract::printer::Printer;
 use chrono::{DateTime, Utc};
 use sqlx::PgPool;
 use std::sync::Arc;
@@ -15,10 +17,8 @@ impl Deadlines {
 }
 
 #[async_trait::async_trait]
-impl List for Deadlines {
-    type Output = serde_json::Value;
-
-    async fn items(&self) -> Result<Vec<serde_json::Value>, sqlx::Error> {
+impl<M: DeadlineMedia> Printer<M> for Deadlines {
+    async fn print(&self, media: &mut M) -> Result<(), BoxError> {
         #[derive(sqlx::FromRow)]
         struct Row {
             project_id: Uuid,
@@ -39,21 +39,17 @@ impl List for Deadlines {
         )
         .fetch_all(self.pool.as_ref())
         .await?;
-        Ok(rows
-            .into_iter()
-            .map(|r| {
-                serde_json::json!({
-                    "stage": {
-                        "project_id": r.project_id,
-                        "parent_position": r.parent_position,
-                        "position": r.position,
-                        "title": r.title,
-                        "deadline": r.deadline,
-                        "completed": r.completed,
-                    },
-                    "project_title": r.project_title,
-                })
-            })
-            .collect())
+        for r in rows {
+            media.add_deadline(
+                r.project_id,
+                r.parent_position,
+                r.position,
+                &r.title,
+                r.deadline,
+                r.completed,
+                &r.project_title,
+            );
+        }
+        Ok(())
     }
 }

@@ -1,8 +1,8 @@
-use crate::model::project::contract::list::List;
+use crate::model::contract::box_error::BoxError;
+use crate::model::contract::comment_media::CommentMedia;
+use crate::model::contract::printer::Printer;
 use crate::model::project::stage::Stage;
-use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use serde::Serialize;
 use sqlx::PgPool;
 use std::sync::Arc;
 use uuid::Uuid;
@@ -18,12 +18,10 @@ impl PinnedCommentSummaries {
     }
 }
 
-#[async_trait]
-impl List for PinnedCommentSummaries {
-    type Output = serde_json::Value;
-
-    async fn items(&self) -> Result<Vec<serde_json::Value>, sqlx::Error> {
-        #[derive(sqlx::FromRow, Serialize)]
+#[async_trait::async_trait]
+impl<M: CommentMedia> Printer<M> for PinnedCommentSummaries {
+    async fn print(&self, media: &mut M) -> Result<(), BoxError> {
+        #[derive(sqlx::FromRow)]
         struct Row {
             id: Uuid,
             text: String,
@@ -46,8 +44,17 @@ impl List for PinnedCommentSummaries {
         .fetch_all(self.pool.as_ref())
         .await?;
 
-        rows.into_iter()
-            .map(|r| serde_json::to_value(r).map_err(|e| sqlx::Error::Decode(e.into())))
-            .collect()
+        for r in rows {
+            media.add_comment(
+                r.id,
+                &r.text,
+                &r.author,
+                r.is_system,
+                r.created_at,
+                r.is_pinned,
+            );
+        }
+
+        Ok(())
     }
 }

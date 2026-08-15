@@ -1,6 +1,7 @@
-use crate::model::project::contract::list::List;
+use crate::model::contract::attachment_media::AttachmentMedia;
+use crate::model::contract::box_error::BoxError;
+use crate::model::contract::printer::Printer;
 use crate::model::project::stage::Stage;
-use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use sqlx::PgPool;
 use std::sync::Arc;
@@ -17,11 +18,9 @@ impl AttachmentSummaries {
     }
 }
 
-#[async_trait]
-impl List for AttachmentSummaries {
-    type Output = serde_json::Value;
-
-    async fn items(&self) -> Result<Vec<serde_json::Value>, sqlx::Error> {
+#[async_trait::async_trait]
+impl<M: AttachmentMedia> Printer<M> for AttachmentSummaries {
+    async fn print(&self, media: &mut M) -> Result<(), BoxError> {
         #[derive(sqlx::FromRow)]
         struct Row {
             id: Uuid,
@@ -44,20 +43,27 @@ impl List for AttachmentSummaries {
         .bind(self.stage.position())
         .fetch_all(self.pool.as_ref())
         .await?;
-        Ok(rows.into_iter().map(|row| {
+        for row in rows {
             let download_url = if row.parent_position == 0 {
-                format!("/api/projects/{}/stages/{}/attachments/{}/download", row.project_id, row.stage_position, row.id)
+                format!(
+                    "/api/projects/{}/stages/{}/attachments/{}/download",
+                    row.project_id, row.stage_position, row.id
+                )
             } else {
-                format!("/api/projects/{}/stages/{}/sub/{}/attachments/{}/download", row.project_id, row.parent_position, row.stage_position, row.id)
+                format!(
+                    "/api/projects/{}/stages/{}/sub/{}/attachments/{}/download",
+                    row.project_id, row.parent_position, row.stage_position, row.id
+                )
             };
-            serde_json::json!({
-                "id": row.id,
-                "filename": row.filename,
-                "mime_type": row.mime_type,
-                "size_bytes": row.size_bytes,
-                "created_at": row.created_at,
-                "download_url": download_url,
-            })
-        }).collect())
+            media.add_attachment(
+                row.id,
+                &row.filename,
+                &row.mime_type,
+                row.size_bytes,
+                row.created_at,
+                &download_url,
+            );
+        }
+        Ok(())
     }
 }

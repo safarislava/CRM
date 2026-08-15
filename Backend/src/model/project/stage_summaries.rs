@@ -1,8 +1,8 @@
-use crate::model::project::contract::list::List;
+use crate::model::contract::box_error::BoxError;
+use crate::model::contract::printer::Printer;
+use crate::model::contract::stage_media::StageMedia;
 use crate::model::project::project::Project;
-use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use serde::Serialize;
 use sqlx::PgPool;
 use std::sync::Arc;
 use uuid::Uuid;
@@ -18,12 +18,10 @@ impl StageSummaries {
     }
 }
 
-#[async_trait]
-impl List for StageSummaries {
-    type Output = serde_json::Value;
-
-    async fn items(&self) -> Result<Vec<serde_json::Value>, sqlx::Error> {
-        #[derive(sqlx::FromRow, Serialize)]
+#[async_trait::async_trait]
+impl<M: StageMedia> Printer<M> for StageSummaries {
+    async fn print(&self, media: &mut M) -> Result<(), BoxError> {
+        #[derive(sqlx::FromRow)]
         struct Row {
             project_id: Uuid,
             parent_position: i32,
@@ -54,8 +52,22 @@ impl List for StageSummaries {
         .bind(self.project.id())
         .fetch_all(self.pool.as_ref())
         .await?;
-        rows.into_iter()
-            .map(|r| serde_json::to_value(r).map_err(|e| sqlx::Error::Decode(e.into())))
-            .collect()
+        for r in rows {
+            media.add_stage(
+                r.project_id,
+                r.parent_position,
+                r.position,
+                &r.title,
+                r.deadline,
+                r.completed,
+                r.gip_confirmed,
+                r.advance_cost,
+                r.advance_confirmed,
+                r.final_cost,
+                r.final_confirmed,
+                r.has_act,
+            );
+        }
+        Ok(())
     }
 }

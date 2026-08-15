@@ -1,6 +1,7 @@
 use crate::endpoint::api_error::ApiError;
+use crate::endpoint::json_attachment_media::JsonAttachmentMedia;
+use crate::model::contract::printer::Printer;
 use crate::model::project::attachment_summaries::AttachmentSummaries;
-use crate::model::project::contract::list::List;
 use crate::model::project::project::Project;
 use crate::model::project::stage::Stage;
 use crate::state::AppState;
@@ -13,9 +14,10 @@ pub async fn get(
 ) -> Result<HttpResponse, ApiError> {
     let (project_id, parent_position, position) = path.into_inner();
     let stage = Stage::new_substage(Project::new(project_id), parent_position, position);
-    let items = AttachmentSummaries::new(state.pool.clone(), stage)
-        .items()
+    let mut media = JsonAttachmentMedia::default();
+    AttachmentSummaries::new(state.pool.clone(), stage)
+        .print(&mut media)
         .await
         .map_err(|e| ApiError::Internal(e.to_string()))?;
-    Ok(HttpResponse::Ok().json(items))
+    Ok(HttpResponse::Ok().json(media))
 }

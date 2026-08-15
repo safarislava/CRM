@@ -1,7 +1,7 @@
-use crate::model::project::contract::list::List;
-use async_trait::async_trait;
+use crate::model::contract::box_error::BoxError;
+use crate::model::contract::printer::Printer;
+use crate::model::contract::project_media::ProjectMedia;
 use chrono::{DateTime, Utc};
-use serde::Serialize;
 use sqlx::PgPool;
 use std::sync::Arc;
 use uuid::Uuid;
@@ -16,12 +16,10 @@ impl ProjectSummaries {
     }
 }
 
-#[async_trait]
-impl List for ProjectSummaries {
-    type Output = serde_json::Value;
-
-    async fn items(&self) -> Result<Vec<serde_json::Value>, sqlx::Error> {
-        #[derive(sqlx::FromRow, Serialize)]
+#[async_trait::async_trait]
+impl<M: ProjectMedia> Printer<M> for ProjectSummaries {
+    async fn print(&self, media: &mut M) -> Result<(), BoxError> {
+        #[derive(sqlx::FromRow)]
         struct Row {
             id: Uuid,
             title: String,
@@ -32,8 +30,9 @@ impl List for ProjectSummaries {
         )
         .fetch_all(self.pool.as_ref())
         .await?;
-        rows.into_iter()
-            .map(|r| serde_json::to_value(r).map_err(|e| sqlx::Error::Decode(e.into())))
-            .collect()
+        for r in rows {
+            media.add_project(r.id, &r.title, r.updated_at);
+        }
+        Ok(())
     }
 }
