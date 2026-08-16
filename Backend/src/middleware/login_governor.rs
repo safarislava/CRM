@@ -9,3 +9,13 @@ pub fn login_governor() -> GovernorConfig<PeerIpKeyExtractor, NoOpMiddleware<Qua
         .finish()
         .unwrap()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn creates_login_governor_config() {
+        let _config = login_governor();
+    }
+}

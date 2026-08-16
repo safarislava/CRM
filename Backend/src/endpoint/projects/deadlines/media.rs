@@ -49,3 +49,29 @@ impl DeadlineMedia for JsonDeadlineMedia {
         });
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn serializes_deadline_media_to_json() {
+        let mut media = JsonDeadlineMedia::default();
+        let p_id = Uuid::nil();
+        let now = Utc::now();
+
+        media.add_deadline(
+            p_id,
+            0,
+            1,
+            "Foundation Work",
+            Some(now),
+            false,
+            "Office Building",
+        );
+
+        let json = serde_json::to_string(&media).unwrap();
+        assert!(json.contains("\"project_title\":\"Office Building\""));
+        assert!(json.contains("\"title\":\"Foundation Work\""));
+    }
+}

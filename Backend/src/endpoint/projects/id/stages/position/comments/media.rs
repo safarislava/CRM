@@ -39,3 +39,22 @@ impl CommentMedia for JsonCommentMedia {
         });
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn serializes_comment_media_to_json() {
+        let mut media = JsonCommentMedia::default();
+        let c_id = Uuid::nil();
+        let now = Utc::now();
+
+        media.add_comment(c_id, "Note added", "Alice", false, now, true);
+
+        let json = serde_json::to_string(&media).unwrap();
+        assert!(json.contains("\"text\":\"Note added\""));
+        assert!(json.contains("\"author\":\"Alice\""));
+        assert!(json.contains("\"is_pinned\":true"));
+    }
+}

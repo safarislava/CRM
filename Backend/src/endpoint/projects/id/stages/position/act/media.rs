@@ -39,3 +39,28 @@ impl ActMedia for JsonActMedia {
         });
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn serializes_act_media_to_json() {
+        let mut media = JsonActMedia::default();
+        let act_id = Uuid::nil();
+        let now = Utc::now();
+
+        media.add_act(
+            act_id,
+            "signed_act.pdf",
+            "application/pdf",
+            1024,
+            now,
+            "/api/download/act/123",
+        );
+
+        let json = serde_json::to_string(&media).unwrap();
+        assert!(json.contains("\"filename\":\"signed_act.pdf\""));
+        assert!(json.contains("\"download_url\":\"/api/download/act/123\""));
+    }
+}
