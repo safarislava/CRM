@@ -19,3 +19,16 @@ impl Event for PollInterval {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[actix_web::test]
+    async fn fires_after_duration() {
+        let interval = PollInterval::new(Duration::from_millis(5));
+        let start = std::time::Instant::now();
+        interval.fired().await.unwrap();
+        assert!(start.elapsed() >= Duration::from_millis(5));
+    }
+}

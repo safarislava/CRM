@@ -28,6 +28,7 @@ impl CommentText for DeadlineChangeText {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use chrono::TimeZone;
 
     #[test]
     fn formats_deadline_change_and_removal() {
