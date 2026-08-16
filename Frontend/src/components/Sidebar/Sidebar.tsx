@@ -1,16 +1,16 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import type { AppDispatch, RootState } from '../../store'
-import { selectProject, setUserPageOpen, setAdminPageOpen } from '../../store/uiSlice'
+import React, {useEffect, useMemo, useRef, useState} from 'react'
+import {useDispatch, useSelector} from 'react-redux'
+import type {AppDispatch, RootState} from '../../store'
+import {selectProject, setAdminPageOpen, setUserPageOpen} from '../../store/uiSlice'
 import {
-  useGetProjectsQuery,
   useCreateProjectMutation,
   useDeleteProjectMutation,
   useGetDeadlinesQuery,
+  useGetProjectsQuery,
 } from '../../store/crmApi'
-import { useGetMeQuery } from '../../store/api/usersApi'
+import {useGetMeQuery} from '../../store/api/usersApi'
 import ConfirmDeleteModal from '../ConfirmDeleteModal/ConfirmDeleteModal'
-import DeadlineDropdown, { deadlineDiffDays } from './components/DeadlineDropdown'
+import DeadlineDropdown, {deadlineDiffDays} from './components/DeadlineDropdown'
 import SidebarItem from './components/SidebarItem'
 import styles from './Sidebar.module.scss'
 
@@ -40,12 +40,18 @@ export default function Sidebar() {
   const deadlineItems = useMemo(() => {
     const cutoff = Date.now() + 30 * 86_400_000
     return allDeadlines.filter(
-      (d) => !d.stage.completed && new Date(d.stage.deadline!).getTime() <= cutoff,
+        (d) =>
+            d?.stage_id &&
+            !d.stage_id.completed &&
+            d.stage_id.deadline &&
+            new Date(d.stage_id.deadline).getTime() <= cutoff,
     )
   }, [allDeadlines])
 
   const overdueCount = useMemo(
-    () => deadlineItems.filter((d) => deadlineDiffDays(d.stage.deadline!) < 0).length,
+      () =>
+          deadlineItems.filter((d) => d.stage_id?.deadline && deadlineDiffDays(d.stage_id.deadline) < 0)
+              .length,
     [deadlineItems],
   )
 
