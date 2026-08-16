@@ -16,3 +16,16 @@ impl Invite for InviteCode {
         self.token
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn returns_correct_invite_token() {
+        let token = Uuid::new_v4();
+        let invite = InviteCode::new(token);
+
+        assert_eq!(invite.token(), token);
+    }
+}
