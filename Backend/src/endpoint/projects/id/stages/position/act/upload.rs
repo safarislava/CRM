@@ -7,6 +7,7 @@ use crate::model::project::file_content::FileContent;
 use crate::model::project::id::ProjectId;
 use crate::model::project::stage::act::logged_upload::LoggedActUpload;
 use crate::model::project::stage::id::StageId;
+use crate::model::project::stage::invalidating_task::InvalidatingStageTask;
 use crate::state::AppState;
 use actix_multipart::Multipart;
 use actix_web::{HttpRequest, HttpResponse, web};
@@ -65,12 +66,16 @@ pub async fn post(
         user.clone(),
         AuditAction::ActUpload { filename },
         format!("{project_id}:{stage_position}"),
-        LoggedActUpload::new(
-            state.pool.clone(),
-            state.storage.clone(),
-            stage_id,
-            user,
-            file,
+        InvalidatingStageTask::new(
+            LoggedActUpload::new(
+                state.pool.clone(),
+                state.storage.clone(),
+                stage_id,
+                user,
+                file,
+            ),
+            state.stage_cache.clone(),
+            stage_id.project_id(),
         ),
     )
     .perform()

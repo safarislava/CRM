@@ -6,6 +6,7 @@ use crate::model::contract::task::Task;
 use crate::model::project::id::ProjectId;
 use crate::model::project::stage::cost::r#final::logged_update::LoggedFinalCostUpdate;
 use crate::model::project::stage::id::StageId;
+use crate::model::project::stage::invalidating_task::InvalidatingStageTask;
 use crate::state::AppState;
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, web};
@@ -27,14 +28,19 @@ pub async fn patch(
         .user()
         .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
     let (project_id, position) = path.into_inner();
-    let stage_id = StageId::new(ProjectId::new(project_id), position);
+    let project_id_obj = ProjectId::new(project_id);
+    let stage_id = StageId::new(project_id_obj, position);
     AuditedTask::new(
         user.clone(),
         AuditAction::FinalCostUpdate {
             new_cost: body.cost,
         },
         format!("{project_id}:{position}"),
-        LoggedFinalCostUpdate::new(state.pool.clone(), stage_id, user, body.cost),
+        InvalidatingStageTask::new(
+            LoggedFinalCostUpdate::new(state.pool.clone(), stage_id, user, body.cost),
+            state.stage_cache.clone(),
+            project_id_obj,
+        ),
     )
     .perform()
     .await

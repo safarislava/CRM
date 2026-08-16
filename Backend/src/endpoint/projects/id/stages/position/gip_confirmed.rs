@@ -6,6 +6,7 @@ use crate::model::contract::task::Task;
 use crate::model::project::id::ProjectId;
 use crate::model::project::stage::gip::logged_confirmation::LoggedGipConfirmation;
 use crate::model::project::stage::id::StageId;
+use crate::model::project::stage::invalidating_task::InvalidatingStageTask;
 use crate::state::AppState;
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, web};
@@ -27,14 +28,19 @@ pub async fn patch(
         .user()
         .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
     let (project_id, position) = path.into_inner();
-    let stage_id = StageId::new(ProjectId::new(project_id), position);
+    let project_id_obj = ProjectId::new(project_id);
+    let stage_id = StageId::new(project_id_obj, position);
     AuditedTask::new(
         user.clone(),
         AuditAction::GipConfirm {
             confirmed: body.confirmed,
         },
         format!("{project_id}:{position}"),
-        LoggedGipConfirmation::new(state.pool.clone(), stage_id, user, body.confirmed),
+        InvalidatingStageTask::new(
+            LoggedGipConfirmation::new(state.pool.clone(), stage_id, user, body.confirmed),
+            state.stage_cache.clone(),
+            project_id_obj,
+        ),
     )
     .perform()
     .await

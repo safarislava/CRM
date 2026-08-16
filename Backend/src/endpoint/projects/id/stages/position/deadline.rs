@@ -6,6 +6,7 @@ use crate::model::contract::task::Task;
 use crate::model::project::id::ProjectId;
 use crate::model::project::stage::deadline::logged_update::LoggedDeadlineUpdate;
 use crate::model::project::stage::id::StageId;
+use crate::model::project::stage::invalidating_task::InvalidatingStageTask;
 use crate::state::AppState;
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, web};
@@ -28,7 +29,8 @@ pub async fn patch(
         .user()
         .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
     let (project_id, position) = path.into_inner();
-    let stage_id = StageId::new(ProjectId::new(project_id), position);
+    let project_id_obj = ProjectId::new(project_id);
+    let stage_id = StageId::new(project_id_obj, position);
     let deadline_str = body.deadline.map(|d| d.to_rfc3339());
     AuditedTask::new(
         user.clone(),
@@ -36,7 +38,11 @@ pub async fn patch(
             new_deadline: deadline_str,
         },
         format!("{project_id}:{position}"),
-        LoggedDeadlineUpdate::new(state.pool.clone(), stage_id, user, body.deadline),
+        InvalidatingStageTask::new(
+            LoggedDeadlineUpdate::new(state.pool.clone(), stage_id, user, body.deadline),
+            state.stage_cache.clone(),
+            project_id_obj,
+        ),
     )
     .perform()
     .await

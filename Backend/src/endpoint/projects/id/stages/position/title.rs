@@ -5,6 +5,7 @@ use crate::model::audit::AuditedTask;
 use crate::model::contract::task::Task;
 use crate::model::project::id::ProjectId;
 use crate::model::project::stage::id::StageId;
+use crate::model::project::stage::invalidating_task::InvalidatingStageTask;
 use crate::model::project::stage::logged_rename::LoggedStageRename;
 use crate::state::AppState;
 use actix_web::web::Json;
@@ -27,7 +28,8 @@ pub async fn patch(
         .user()
         .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
     let (project_id, position) = path.into_inner();
-    let stage_id = StageId::new(ProjectId::new(project_id), position);
+    let project_id_obj = ProjectId::new(project_id);
+    let stage_id = StageId::new(project_id_obj, position);
     let title = body.title.trim().to_string();
     AuditedTask::new(
         user.clone(),
@@ -35,7 +37,11 @@ pub async fn patch(
             new_title: title.clone(),
         },
         format!("{project_id}:{position}"),
-        LoggedStageRename::new(state.pool.clone(), stage_id, user, title),
+        InvalidatingStageTask::new(
+            LoggedStageRename::new(state.pool.clone(), stage_id, user, title),
+            state.stage_cache.clone(),
+            project_id_obj,
+        ),
     )
     .perform()
     .await
