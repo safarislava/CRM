@@ -10,7 +10,6 @@ use crate::state::AppState;
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, web};
 use serde::Deserialize;
-use uuid::Uuid;
 
 #[derive(Deserialize)]
 pub struct RenameProjectDto {
@@ -20,7 +19,7 @@ pub struct RenameProjectDto {
 pub async fn patch(
     state: web::Data<AppState>,
     request: HttpRequest,
-    path: web::Path<Uuid>,
+    project_id: ProjectId,
     body: Json<RenameProjectDto>,
 ) -> Result<HttpResponse, ApiError> {
     let user = request
@@ -30,14 +29,12 @@ pub async fn patch(
     if title.is_empty() {
         return Err(ApiError::BadRequest("Title cannot be empty".to_string()));
     }
-    let raw_project_id = path.into_inner();
-    let project_id = ProjectId::new(raw_project_id);
     AuditedTask::new(
         user,
         AuditAction::ProjectRename {
             new_title: title.clone(),
         },
-        raw_project_id,
+        project_id.id(),
         InvalidatingByProjectId::new(
             ProjectRename::new(state.pool.clone(), project_id, title),
             state.project_cache.clone(),

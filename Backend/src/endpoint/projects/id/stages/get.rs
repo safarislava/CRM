@@ -6,14 +6,13 @@ use crate::model::project::stage::cached_summaries::CachedStageSummaries;
 use crate::model::project::stage::summaries::StageSummaries;
 use crate::state::AppState;
 use actix_web::{HttpResponse, web};
-use uuid::Uuid;
 
 pub async fn get(
     state: web::Data<AppState>,
-    path: web::Path<Uuid>,
+    path: web::Path<ProjectId>,
 ) -> Result<HttpResponse, ApiError> {
     let mut media = JsonStageMedia::default();
-    let project_id = ProjectId::new(path.into_inner());
+    let project_id = path.into_inner();
     CachedStageSummaries::new(
         StageSummaries::new(state.pool.clone(), project_id),
         state.stage_cache.clone(),

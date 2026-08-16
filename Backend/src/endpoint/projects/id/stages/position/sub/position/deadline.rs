@@ -1,7 +1,6 @@
 use crate::endpoint::api_error::ApiError;
 use crate::endpoint::auth_header::AuthHeader;
 use crate::model::contract::task::Task;
-use crate::model::project::id::ProjectId;
 use crate::model::project::stage::deadline::logged_update::LoggedDeadlineUpdate;
 use crate::model::project::stage::id::StageId;
 use crate::model::project::stage::invalidating_by_project_id::InvalidatingByProjectId;
@@ -10,7 +9,6 @@ use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, web};
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
-use uuid::Uuid;
 
 #[derive(Deserialize)]
 pub struct Body {
@@ -20,23 +18,16 @@ pub struct Body {
 pub async fn patch(
     state: web::Data<AppState>,
     request: HttpRequest,
-    path: web::Path<(Uuid, i32, i32)>,
+    stage_id: StageId,
     body: Json<Body>,
 ) -> Result<HttpResponse, ApiError> {
     let user = request
         .user()
         .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
-    let (project_id, parent_position, position) = path.into_inner();
-    let project_id_obj = ProjectId::new(project_id);
     InvalidatingByProjectId::new(
-        LoggedDeadlineUpdate::new(
-            state.pool.clone(),
-            StageId::new_substage(ProjectId::new(project_id), parent_position, position),
-            user,
-            body.deadline,
-        ),
+        LoggedDeadlineUpdate::new(state.pool.clone(), stage_id, user, body.deadline),
         state.stage_cache.clone(),
-        project_id_obj,
+        stage_id.project_id(),
     )
     .perform()
     .await

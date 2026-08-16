@@ -1,28 +1,14 @@
 use crate::endpoint::api_error::ApiError;
 use crate::endpoint::projects::id::stages::position::comments::media::JsonCommentMedia;
 use crate::model::contract::printer::Printer;
-use crate::model::project::id::ProjectId;
 use crate::model::project::stage::comment::summaries::CommentSummaries;
 use crate::model::project::stage::id::StageId;
 use crate::state::AppState;
 use actix_web::{HttpResponse, web};
-use serde::Deserialize;
-use uuid::Uuid;
 
-#[derive(Deserialize)]
-pub struct Query {
-    before: Option<Uuid>,
-}
-
-pub async fn get(
-    state: web::Data<AppState>,
-    path: web::Path<(Uuid, i32, i32)>,
-    query: web::Query<Query>,
-) -> Result<HttpResponse, ApiError> {
-    let (project_id, parent_position, position) = path.into_inner();
-    let stage_id = StageId::new_substage(ProjectId::new(project_id), parent_position, position);
+pub async fn get(state: web::Data<AppState>, stage_id: StageId) -> Result<HttpResponse, ApiError> {
     let mut media = JsonCommentMedia::default();
-    CommentSummaries::new(state.pool.clone(), stage_id, query.into_inner().before)
+    CommentSummaries::new(state.pool.clone(), stage_id, None)
         .print(&mut media)
         .await
         .map_err(|e| ApiError::Internal(e.to_string()))?;

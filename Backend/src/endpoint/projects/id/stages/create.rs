@@ -10,7 +10,6 @@ use crate::state::AppState;
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, web};
 use serde::Deserialize;
-use uuid::Uuid;
 
 #[derive(Deserialize)]
 pub struct CreateStageDto {
@@ -20,19 +19,18 @@ pub struct CreateStageDto {
 pub async fn create(
     state: web::Data<AppState>,
     request: HttpRequest,
-    path: web::Path<Uuid>,
+    path: web::Path<ProjectId>,
     body: Json<CreateStageDto>,
 ) -> Result<HttpResponse, ApiError> {
     let user = request
         .user()
         .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
-    let raw_project_id = path.into_inner();
-    let project_id = ProjectId::new(raw_project_id);
+    let project_id = path.into_inner();
     let title = body.title.clone();
     AuditedTask::new(
         user,
         AuditAction::StageCreate,
-        format!("{raw_project_id}:{title}"),
+        format!("{project_id}:{title}"),
         InvalidatingByProjectId::new(
             StageAppending::new(state.pool.clone(), project_id, title),
             state.stage_cache.clone(),
@@ -42,5 +40,5 @@ pub async fn create(
     .perform()
     .await
     .map_err(|e| ApiError::Internal(e.to_string()))?;
-    Ok(HttpResponse::Ok().finish())
+    Ok(HttpResponse::Created().finish())
 }

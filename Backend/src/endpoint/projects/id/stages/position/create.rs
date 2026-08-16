@@ -7,7 +7,6 @@ use crate::state::AppState;
 use actix_web::web::Json;
 use actix_web::{HttpResponse, web};
 use serde::Deserialize;
-use uuid::Uuid;
 
 #[derive(Deserialize)]
 pub struct InsertStageDto {
@@ -16,20 +15,14 @@ pub struct InsertStageDto {
 
 pub async fn create(
     state: web::Data<AppState>,
-    path: web::Path<(Uuid, i32)>,
+    path: web::Path<(ProjectId, i32)>,
     body: Json<InsertStageDto>,
 ) -> Result<HttpResponse, ApiError> {
     let (project_id, position) = path.into_inner();
-    let project_id_obj = ProjectId::new(project_id);
     InvalidatingByProjectId::new(
-        StageInsertion::new(
-            state.pool.clone(),
-            ProjectId::new(project_id),
-            position,
-            body.title.clone(),
-        ),
+        StageInsertion::new(state.pool.clone(), project_id, position, body.title.clone()),
         state.stage_cache.clone(),
-        project_id_obj,
+        project_id,
     )
     .perform()
     .await
