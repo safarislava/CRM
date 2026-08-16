@@ -1,6 +1,6 @@
 import React from 'react'
-import type { StageWithProjectTitle } from '../../../types'
-import { selectProject, selectStage } from '../../../store/uiSlice'
+import type {StageWithProjectTitle} from '../../../types'
+import {selectProject, selectStage} from '../../../store/uiSlice'
 import styles from '../Sidebar.module.scss'
 
 function deadlineDiffDays(iso: string) {
@@ -49,14 +49,14 @@ export default function DeadlineDropdown({
       ) : (
         deadlineItems.map((item) => (
           <button
-            key={`${item.stage.project_id}-${item.stage.position}`}
+              key={`${item.stage_id.project_id}-${item.stage_id.position}`}
             className={styles.deadlineItem}
             onClick={() => {
-              dispatch(selectProject(item.stage.project_id))
+              dispatch(selectProject(item.stage_id.project_id))
               dispatch(
                 selectStage({
-                  parentPosition: item.stage.parent_position,
-                  position: item.stage.position,
+                  parentPosition: item.stage_id.parent_position,
+                  position: item.stage_id.position,
                 }),
               )
               onClose()
@@ -64,14 +64,14 @@ export default function DeadlineDropdown({
           >
             <span
               className={`${styles.deadlineDate} ${
-                styles[`deadline_${deadlineUrgency(item.stage.deadline!)}`]
+                  styles[`deadline_${deadlineUrgency(item.stage_id.deadline!)}`]
               }`}
             >
-              {formatDeadlineDate(item.stage.deadline!)}
+              {formatDeadlineDate(item.stage_id.deadline!)}
             </span>
             <div className={styles.deadlineInfo}>
               <span className={styles.deadlineProject}>{item.project_title}</span>
-              <span className={styles.deadlineStage}>{item.stage.title}</span>
+              <span className={styles.deadlineStage}>{item.stage_id.title}</span>
             </div>
           </button>
         ))
