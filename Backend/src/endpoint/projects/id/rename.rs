@@ -1,10 +1,11 @@
 use crate::endpoint::api_error::ApiError;
 use crate::endpoint::auth_header::AuthHeader;
-use crate::model::project::project::Project;
 use crate::model::audit::AuditAction;
 use crate::model::audit::AuditedTask;
 use crate::model::contract::task::Task;
-use crate::model::project::project_rename::ProjectRename;
+use crate::model::project::id::ProjectId;
+use crate::model::project::invalidating_rename::InvalidatingProjectRename;
+use crate::model::project::rename::ProjectRename;
 use crate::state::AppState;
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, web};
@@ -29,14 +30,19 @@ pub async fn patch(
     if title.is_empty() {
         return Err(ApiError::BadRequest("Title cannot be empty".to_string()));
     }
-    let project_id = path.into_inner();
+    let raw_project_id = path.into_inner();
+    let project_id = ProjectId::new(raw_project_id);
     AuditedTask::new(
         user,
         AuditAction::ProjectRename {
             new_title: title.clone(),
         },
-        project_id,
-        ProjectRename::new(state.pool.clone(), Project::new(project_id), title),
+        raw_project_id,
+        InvalidatingProjectRename::new(
+            ProjectRename::new(state.pool.clone(), project_id, title),
+            state.project_cache.clone(),
+            project_id,
+        ),
     )
     .perform()
     .await

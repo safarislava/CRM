@@ -1,10 +1,10 @@
 use crate::endpoint::api_error::ApiError;
 use crate::endpoint::auth_header::AuthHeader;
-use crate::model::project::file_content::FileContent;
-use crate::model::project::project::Project;
-use crate::model::project::stage::Stage;
 use crate::model::contract::task::Task;
-use crate::model::project::logged_attachment_upload::LoggedAttachmentUpload;
+use crate::model::project::file_content::FileContent;
+use crate::model::project::id::ProjectId;
+use crate::model::project::stage::attachment::logged_upload::LoggedAttachmentUpload;
+use crate::model::project::stage::id::StageId;
 use crate::state::AppState;
 use actix_multipart::Multipart;
 use actix_web::{HttpRequest, HttpResponse, web};
@@ -13,7 +13,10 @@ use uuid::Uuid;
 
 const MAX_FILE_SIZE: usize = 50 * 1_048_576;
 
-async fn collect_bytes(field: &mut actix_multipart::Field, limit: usize) -> Result<Vec<u8>, ApiError> {
+async fn collect_bytes(
+    field: &mut actix_multipart::Field,
+    limit: usize,
+) -> Result<Vec<u8>, ApiError> {
     let mut data = Vec::new();
     while let Some(chunk) = field.next().await {
         match chunk {
@@ -35,9 +38,11 @@ pub async fn post(
     path: web::Path<(Uuid, i32, i32)>,
     mut payload: Multipart,
 ) -> Result<HttpResponse, ApiError> {
-    let user = request.user().ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
+    let user = request
+        .user()
+        .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
     let (project_id, parent_position, position) = path.into_inner();
-    let stage = Stage::new_substage(Project::new(project_id), parent_position, position);
+    let stage_id = StageId::new_substage(ProjectId::new(project_id), parent_position, position);
     let mut field = payload
         .next()
         .await
@@ -53,9 +58,15 @@ pub async fn post(
         .map(|kind| kind.mime_type().to_string())
         .unwrap_or_else(|| "application/octet-stream".to_string());
     let file = FileContent::new(filename, mime_type, data);
-    LoggedAttachmentUpload::new(state.pool.clone(), state.storage.clone(), stage, user, file)
-        .perform()
-        .await
-        .map_err(|e| ApiError::Internal(e.to_string()))?;
+    LoggedAttachmentUpload::new(
+        state.pool.clone(),
+        state.storage.clone(),
+        stage_id,
+        user,
+        file,
+    )
+    .perform()
+    .await
+    .map_err(|e| ApiError::Internal(e.to_string()))?;
     Ok(HttpResponse::Created().finish())
 }

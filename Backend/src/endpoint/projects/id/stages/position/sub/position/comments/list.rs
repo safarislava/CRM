@@ -1,8 +1,9 @@
 use crate::endpoint::api_error::ApiError;
-use crate::model::project::comment_summaries::CommentSummaries;
-use crate::model::project::contract::list::List;
-use crate::model::project::project::Project;
-use crate::model::project::stage::Stage;
+use crate::endpoint::json_comment_media::JsonCommentMedia;
+use crate::model::contract::printer::Printer;
+use crate::model::project::id::ProjectId;
+use crate::model::project::stage::comment::summaries::CommentSummaries;
+use crate::model::project::stage::id::StageId;
 use crate::state::AppState;
 use actix_web::{HttpResponse, web};
 use serde::Deserialize;
@@ -19,10 +20,11 @@ pub async fn get(
     query: web::Query<Query>,
 ) -> Result<HttpResponse, ApiError> {
     let (project_id, parent_position, position) = path.into_inner();
-    let stage = Stage::new_substage(Project::new(project_id), parent_position, position);
-    let items = CommentSummaries::new(state.pool.clone(), stage, query.into_inner().before)
-        .items()
+    let stage_id = StageId::new_substage(ProjectId::new(project_id), parent_position, position);
+    let mut media = JsonCommentMedia::default();
+    CommentSummaries::new(state.pool.clone(), stage_id, query.into_inner().before)
+        .print(&mut media)
         .await
         .map_err(|e| ApiError::Internal(e.to_string()))?;
-    Ok(HttpResponse::Ok().json(items))
+    Ok(HttpResponse::Ok().json(media))
 }

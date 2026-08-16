@@ -58,7 +58,10 @@ impl SystemLogs {
             .unwrap_or("INFO")
             .to_uppercase();
         if let Some(ref filter) = self.level_filter {
-            if !filter.is_empty() && filter.to_uppercase() != "ALL" && level != filter.to_uppercase() {
+            if !filter.is_empty()
+                && filter.to_uppercase() != "ALL"
+                && level != filter.to_uppercase()
+            {
                 return None;
             }
         }
@@ -71,13 +74,21 @@ impl SystemLogs {
         if let Some(ref q) = self.query {
             if !q.is_empty() {
                 let q_lower = q.to_lowercase();
-                if !message.to_lowercase().contains(&q_lower) && !line.to_lowercase().contains(&q_lower) {
+                if !message.to_lowercase().contains(&q_lower)
+                    && !line.to_lowercase().contains(&q_lower)
+                {
                     return None;
                 }
             }
         }
-        let timestamp = parsed.get("timestamp").and_then(|v| v.as_str()).map(String::from);
-        let target = parsed.get("target").and_then(|v| v.as_str()).map(String::from);
+        let timestamp = parsed
+            .get("timestamp")
+            .and_then(|v| v.as_str())
+            .map(String::from);
+        let target = parsed
+            .get("target")
+            .and_then(|v| v.as_str())
+            .map(String::from);
         Some(LogEntry {
             timestamp,
             level,

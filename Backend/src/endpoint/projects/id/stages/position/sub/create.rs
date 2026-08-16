@@ -1,7 +1,8 @@
 use crate::endpoint::api_error::ApiError;
-use crate::model::project::project::Project;
 use crate::model::contract::task::Task;
-use crate::model::project::stage_appending::StageAppending;
+use crate::model::project::id::ProjectId;
+use crate::model::project::stage::appending::StageAppending;
+use crate::model::project::stage::invalidating_task::InvalidatingStageTask;
 use crate::state::AppState;
 use actix_web::web::Json;
 use actix_web::{HttpResponse, web};
@@ -19,11 +20,16 @@ pub async fn post(
     body: Json<Body>,
 ) -> Result<HttpResponse, ApiError> {
     let (project_id, parent_position) = path.into_inner();
-    StageAppending::sub(
-        state.pool.clone(),
-        Project::new(project_id),
-        parent_position,
-        body.title.clone(),
+    let project_id_obj = ProjectId::new(project_id);
+    InvalidatingStageTask::new(
+        StageAppending::sub(
+            state.pool.clone(),
+            ProjectId::new(project_id),
+            parent_position,
+            body.title.clone(),
+        ),
+        state.stage_cache.clone(),
+        project_id_obj,
     )
     .perform()
     .await

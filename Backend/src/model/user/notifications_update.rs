@@ -1,20 +1,20 @@
 use crate::model::contract::box_error::BoxError;
 use crate::model::contract::task::Task;
-use crate::model::user::user::User;
+use crate::model::user::id::UserId;
 use sqlx::PgPool;
 use std::sync::Arc;
 
 pub struct NotificationsUpdate {
     pool: Arc<PgPool>,
-    user: User,
+    user_id: UserId,
     enabled: bool,
 }
 
 impl NotificationsUpdate {
-    pub fn new(pool: Arc<PgPool>, user: User, enabled: bool) -> Self {
+    pub fn new(pool: Arc<PgPool>, user_id: UserId, enabled: bool) -> Self {
         Self {
             pool,
-            user,
+            user_id,
             enabled,
         }
     }
@@ -26,7 +26,7 @@ impl Task for NotificationsUpdate {
 
     async fn perform(&self) -> Result<(), BoxError> {
         sqlx::query("UPDATE users SET notifications_enabled = $2 WHERE id = $1")
-            .bind(self.user.id())
+            .bind(self.user_id.id())
             .bind(self.enabled)
             .execute(self.pool.as_ref())
             .await?;

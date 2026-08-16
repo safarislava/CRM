@@ -38,8 +38,8 @@ async fn user_count(pool: &PgPool) -> i64 {
 }
 
 async fn generate_default_user(pool: &PgPool) {
-    let hashed = bcrypt::hash("admin123", bcrypt::DEFAULT_COST)
-        .expect("Failed to hash default password");
+    let hashed =
+        bcrypt::hash("admin123", bcrypt::DEFAULT_COST).expect("Failed to hash default password");
     let user_id: uuid::Uuid = sqlx::query_scalar(
         "INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id",
     )
@@ -49,9 +49,11 @@ async fn generate_default_user(pool: &PgPool) {
     .await
     .expect("Failed to insert default admin user");
 
-    sqlx::query("INSERT INTO user_roles (user_id, role) VALUES ($1, 'admin') ON CONFLICT DO NOTHING")
-        .bind(user_id)
-        .execute(pool)
-        .await
-        .expect("Failed to insert default admin role");
+    sqlx::query(
+        "INSERT INTO user_roles (user_id, role) VALUES ($1, 'admin') ON CONFLICT DO NOTHING",
+    )
+    .bind(user_id)
+    .execute(pool)
+    .await
+    .expect("Failed to insert default admin role");
 }

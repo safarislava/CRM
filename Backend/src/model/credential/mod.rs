@@ -1,5 +1,6 @@
 pub mod contract;
 pub mod db_hash;
+pub mod db_username;
 pub mod hash_user_verification;
 pub mod hashed_password;
 pub mod raw_password;

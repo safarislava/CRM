@@ -1,4 +1,5 @@
 pub mod audit;
+pub mod cache;
 pub mod contract;
 pub mod credential;
 pub mod notification;

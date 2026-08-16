@@ -1,6 +1,6 @@
 use crate::endpoint::api_error::ApiError;
-use crate::model::user::admin::invitations_list::InvitationsList;
 use crate::model::project::contract::json::Json;
+use crate::model::user::admin::invitations_list::InvitationsList;
 use crate::state::AppState;
 use actix_web::{HttpResponse, web};
 

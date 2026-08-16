@@ -1,6 +1,6 @@
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_appender::rolling::{Builder, Rotation};
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, Layer};
+use tracing_subscriber::{EnvFilter, Layer, layer::SubscriberExt, util::SubscriberInitExt};
 
 pub trait AppLogs {
     fn attach(&self) -> WorkerGuard;
@@ -35,8 +35,8 @@ impl RollingLogs {
 
 impl AppLogs for RollingLogs {
     fn attach(&self) -> WorkerGuard {
-        let env_filter = EnvFilter::try_from_default_env()
-            .unwrap_or_else(|_| EnvFilter::new(&self.filter));
+        let env_filter =
+            EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(&self.filter));
 
         let console_layer = tracing_subscriber::fmt::layer()
             .with_ansi(true)

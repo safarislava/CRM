@@ -3,7 +3,8 @@ use crate::endpoint::auth_header::AuthHeader;
 use crate::model::audit::AuditAction;
 use crate::model::audit::AuditedTask;
 use crate::model::contract::task::Task;
-use crate::model::project::project_registration::ProjectRegistration;
+use crate::model::project::invalidating_registration::InvalidatingProjectRegistration;
+use crate::model::project::registration::ProjectRegistration;
 use crate::state::AppState;
 use actix_web::{HttpRequest, HttpResponse, web};
 
@@ -25,7 +26,10 @@ pub async fn create(
         user,
         AuditAction::ProjectCreate,
         title.clone(),
-        ProjectRegistration::new(state.pool.clone(), title),
+        InvalidatingProjectRegistration::new(
+            ProjectRegistration::new(state.pool.clone(), title),
+            state.project_cache.clone(),
+        ),
     )
     .perform()
     .await

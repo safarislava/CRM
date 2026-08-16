@@ -11,7 +11,11 @@ pub struct CookieToken {
 
 impl CookieToken {
     pub fn new(name: String, token: Box<dyn Token>, max_age: Duration) -> Self {
-        Self { name, token, max_age }
+        Self {
+            name,
+            token,
+            max_age,
+        }
     }
 }
 

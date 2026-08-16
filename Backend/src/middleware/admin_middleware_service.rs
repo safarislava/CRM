@@ -1,5 +1,5 @@
 use crate::model::user::contract::admin_access::AdminAccess;
-use crate::model::user::user::User;
+use crate::model::user::id::UserId;
 use crate::model::user::verification_admin::VerificationAdmin;
 use crate::state::AppState;
 use actix_web::dev::{Service, ServiceRequest, ServiceResponse, forward_ready};
@@ -24,7 +24,7 @@ where
 
     fn call(&self, request: ServiceRequest) -> Self::Future {
         let svc = self.service.clone();
-        let user = request.extensions().get::<User>().cloned();
+        let user = request.extensions().get::<UserId>().cloned();
         let state = request.app_data::<web::Data<AppState>>().cloned();
 
         Box::pin(async move {

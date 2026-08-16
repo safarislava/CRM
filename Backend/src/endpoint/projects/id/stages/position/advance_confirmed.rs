@@ -1,9 +1,10 @@
 use crate::endpoint::api_error::ApiError;
 use crate::endpoint::auth_header::AuthHeader;
-use crate::model::project::project::Project;
-use crate::model::project::stage::Stage;
 use crate::model::contract::task::Task;
-use crate::model::project::logged_advance_payment_confirmation::LoggedAdvancePaymentConfirmation;
+use crate::model::project::id::ProjectId;
+use crate::model::project::stage::cost::advance::logged_payment_confirmation::LoggedAdvancePaymentConfirmation;
+use crate::model::project::stage::id::StageId;
+use crate::model::project::stage::invalidating_task::InvalidatingStageTask;
 use crate::state::AppState;
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, web};
@@ -25,10 +26,14 @@ pub async fn patch(
         .user()
         .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
     let (project_id, position) = path.into_inner();
-    let stage = Stage::new(Project::new(project_id), position);
-    LoggedAdvancePaymentConfirmation::new(state.pool.clone(), stage, user, body.confirmed)
-        .perform()
-        .await
-        .map_err(|e| ApiError::Internal(e.to_string()))?;
+    let stage_id = StageId::new(ProjectId::new(project_id), position);
+    InvalidatingStageTask::new(
+        LoggedAdvancePaymentConfirmation::new(state.pool.clone(), stage_id, user, body.confirmed),
+        state.stage_cache.clone(),
+        stage_id.project_id(),
+    )
+    .perform()
+    .await
+    .map_err(|e| ApiError::Internal(e.to_string()))?;
     Ok(HttpResponse::Ok().finish())
 }

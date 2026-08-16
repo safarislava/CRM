@@ -1,7 +1,7 @@
 use crate::endpoint::api_error::ApiError;
 use crate::endpoint::auth_header::AuthHeader;
 use crate::model::project::contract::json::Json;
-use crate::model::user::detailed_user::DetailedUser;
+use crate::model::user::detailed::DetailedUser;
 use crate::state::AppState;
 use actix_web::{HttpRequest, HttpResponse, web};
 

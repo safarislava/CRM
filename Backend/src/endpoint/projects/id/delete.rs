@@ -1,10 +1,11 @@
 use crate::endpoint::api_error::ApiError;
 use crate::endpoint::auth_header::AuthHeader;
-use crate::model::project::project::Project;
 use crate::model::audit::AuditAction;
 use crate::model::audit::AuditedTask;
 use crate::model::contract::task::Task;
-use crate::model::project::project_removal::ProjectRemoval;
+use crate::model::project::id::ProjectId;
+use crate::model::project::invalidating_removal::InvalidatingProjectRemoval;
+use crate::model::project::removal::ProjectRemoval;
 use crate::state::AppState;
 use actix_web::{HttpRequest, HttpResponse, web};
 use uuid::Uuid;
@@ -17,12 +18,17 @@ pub async fn delete(
     let user = request
         .user()
         .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
-    let project_id = path.into_inner();
+    let raw_project_id = path.into_inner();
+    let project_id = ProjectId::new(raw_project_id);
     AuditedTask::new(
         user,
         AuditAction::ProjectDelete,
-        project_id,
-        ProjectRemoval::new(state.pool.clone(), Project::new(project_id)),
+        raw_project_id,
+        InvalidatingProjectRemoval::new(
+            ProjectRemoval::new(state.pool.clone(), project_id),
+            state.project_cache.clone(),
+            project_id,
+        ),
     )
     .perform()
     .await

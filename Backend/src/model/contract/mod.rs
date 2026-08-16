@@ -1,4 +1,11 @@
+pub mod act_media;
+pub mod attachment_media;
+pub mod box_error;
+pub mod comment_media;
 pub mod comment_text;
+pub mod deadline_media;
+pub mod printer;
+pub mod project_media;
+pub mod stage_media;
 pub mod task;
 pub mod value;
-pub mod box_error;

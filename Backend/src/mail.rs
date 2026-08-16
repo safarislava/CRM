@@ -43,7 +43,9 @@ impl Mailer {
             .subject(subject)
             .header(ContentType::TEXT_PLAIN)
             .body(body)?;
-        match actix_web::rt::time::timeout(Duration::from_secs(10), self.transport.send(message)).await {
+        match actix_web::rt::time::timeout(Duration::from_secs(10), self.transport.send(message))
+            .await
+        {
             Ok(Ok(_)) => {
                 tracing::info!(recipient = %to, subject = %subject, "Mailer: Email successfully sent");
                 Ok(())
@@ -60,7 +62,6 @@ impl Mailer {
     }
 }
 
-
 struct MailSettings {
     host: String,
     port: u16,
@@ -69,24 +70,25 @@ struct MailSettings {
 }
 
 impl MailSettings {
-    fn new(
-        host: String,
-        port: u16,
-        username: Option<String>,
-        password: Option<String>,
-    ) -> Self {
-        Self { host, port, username, password }
+    fn new(host: String, port: u16, username: Option<String>, password: Option<String>) -> Self {
+        Self {
+            host,
+            port,
+            username,
+            password,
+        }
     }
 
     fn transport(&self) -> AsyncSmtpTransport<Tokio1Executor> {
-        let mut builder = match self.port {
-            465 => AsyncSmtpTransport::<Tokio1Executor>::relay(&self.host)
-                .expect("valid SMTP relay"),
-            587 => AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(&self.host)
-                .expect("valid SMTP relay"),
-            _ => AsyncSmtpTransport::<Tokio1Executor>::builder_dangerous(&self.host)
-                .port(self.port),
-        };
+        let mut builder =
+            match self.port {
+                465 => AsyncSmtpTransport::<Tokio1Executor>::relay(&self.host)
+                    .expect("valid SMTP relay"),
+                587 => AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(&self.host)
+                    .expect("valid SMTP relay"),
+                _ => AsyncSmtpTransport::<Tokio1Executor>::builder_dangerous(&self.host)
+                    .port(self.port),
+            };
 
         builder = builder.timeout(Some(Duration::from_secs(10)));
         if let Some(ref creds) = self.credentials() {
