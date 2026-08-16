@@ -4,7 +4,7 @@ use crate::model::audit::AuditAction;
 use crate::model::audit::AuditedTask;
 use crate::model::contract::task::Task;
 use crate::model::project::id::ProjectId;
-use crate::model::project::invalidating_rename::InvalidatingProjectRename;
+use crate::model::project::invalidating_by_project_id::InvalidatingByProjectId;
 use crate::model::project::rename::ProjectRename;
 use crate::state::AppState;
 use actix_web::web::Json;
@@ -38,7 +38,7 @@ pub async fn patch(
             new_title: title.clone(),
         },
         raw_project_id,
-        InvalidatingProjectRename::new(
+        InvalidatingByProjectId::new(
             ProjectRename::new(state.pool.clone(), project_id, title),
             state.project_cache.clone(),
             project_id,

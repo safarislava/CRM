@@ -4,30 +4,22 @@ use crate::model::contract::box_error::BoxError;
 use crate::model::contract::task::Task;
 use crate::model::project::cache_key::ProjectCacheKey;
 use crate::model::project::cached_summaries::ProjectSummaryItem;
-use crate::model::project::id::ProjectId;
 use async_trait::async_trait;
 
-pub struct InvalidatingProjectRename<T, C> {
+pub struct InvalidatingAllSummaries<T, C> {
     task: InvalidatingTask<T, C, ProjectCacheKey, Vec<ProjectSummaryItem>>,
 }
 
-impl<T, C> InvalidatingProjectRename<T, C> {
-    pub fn new(origin: T, cache: C, project_id: ProjectId) -> Self {
+impl<T, C> InvalidatingAllSummaries<T, C> {
+    pub fn new(origin: T, cache: C) -> Self {
         Self {
-            task: InvalidatingTask::new(
-                origin,
-                cache,
-                vec![
-                    ProjectCacheKey::AllSummaries,
-                    ProjectCacheKey::ByProjectId(project_id),
-                ],
-            ),
+            task: InvalidatingTask::single(origin, cache, ProjectCacheKey::AllSummaries),
         }
     }
 }
 
 #[async_trait]
-impl<T, C> Task for InvalidatingProjectRename<T, C>
+impl<T, C> Task for InvalidatingAllSummaries<T, C>
 where
     T: Task<Output = ()> + Send + Sync,
     C: Cache<ProjectCacheKey, Vec<ProjectSummaryItem>> + Send + Sync,

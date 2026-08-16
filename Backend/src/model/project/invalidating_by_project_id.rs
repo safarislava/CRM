@@ -7,11 +7,11 @@ use crate::model::project::cached_summaries::ProjectSummaryItem;
 use crate::model::project::id::ProjectId;
 use async_trait::async_trait;
 
-pub struct InvalidatingProjectRemoval<T, C> {
+pub struct InvalidatingByProjectId<T, C> {
     task: InvalidatingTask<T, C, ProjectCacheKey, Vec<ProjectSummaryItem>>,
 }
 
-impl<T, C> InvalidatingProjectRemoval<T, C> {
+impl<T, C> InvalidatingByProjectId<T, C> {
     pub fn new(origin: T, cache: C, project_id: ProjectId) -> Self {
         Self {
             task: InvalidatingTask::new(
@@ -27,7 +27,7 @@ impl<T, C> InvalidatingProjectRemoval<T, C> {
 }
 
 #[async_trait]
-impl<T, C> Task for InvalidatingProjectRemoval<T, C>
+impl<T, C> Task for InvalidatingByProjectId<T, C>
 where
     T: Task<Output = ()> + Send + Sync,
     C: Cache<ProjectCacheKey, Vec<ProjectSummaryItem>> + Send + Sync,

@@ -4,7 +4,7 @@ use crate::model::audit::AuditAction;
 use crate::model::audit::AuditedTask;
 use crate::model::contract::task::Task;
 use crate::model::project::id::ProjectId;
-use crate::model::project::invalidating_removal::InvalidatingProjectRemoval;
+use crate::model::project::invalidating_by_project_id::InvalidatingByProjectId;
 use crate::model::project::removal::ProjectRemoval;
 use crate::state::AppState;
 use actix_web::{HttpRequest, HttpResponse, web};
@@ -24,7 +24,7 @@ pub async fn delete(
         user,
         AuditAction::ProjectDelete,
         raw_project_id,
-        InvalidatingProjectRemoval::new(
+        InvalidatingByProjectId::new(
             ProjectRemoval::new(state.pool.clone(), project_id),
             state.project_cache.clone(),
             project_id,
