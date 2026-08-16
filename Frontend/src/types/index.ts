@@ -38,7 +38,7 @@ export interface DetailedStage {
 export type Act = Attachment
 
 export interface StageWithProjectTitle {
-  stage: Stage
+  stage_id: Stage
   project_title: string
 }
 
