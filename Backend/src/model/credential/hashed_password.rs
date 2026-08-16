@@ -23,3 +23,19 @@ impl Hash for HashedPassword {
         .map_err(|_| HashError::Task)?
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::model::credential::raw_password::RawPassword;
+
+    #[actix_web::test]
+    async fn produces_valid_bcrypt_hash() {
+        let raw = "my_secure_pass";
+        let hash = HashedPassword::new(RawPassword::new(raw.to_string()))
+            .value()
+            .await
+            .unwrap();
+        assert!(bcrypt::verify(raw, &hash).unwrap());
+    }
+}

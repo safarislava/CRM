@@ -61,3 +61,65 @@ where
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::model::cache::memory_cache::MemoryCache;
+    use std::sync::Arc;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use uuid::Uuid;
+
+    struct CountedStageOrigin {
+        calls: Arc<AtomicUsize>,
+        project_id: ProjectId,
+    }
+
+    #[async_trait]
+    impl Printer<CollectingStageMedia> for CountedStageOrigin {
+        async fn print(&self, media: &mut CollectingStageMedia) -> Result<(), BoxError> {
+            self.calls.fetch_add(1, Ordering::SeqCst);
+            media.add_stage(
+                self.project_id.id(),
+                0,
+                1,
+                "Design Phase",
+                None,
+                false,
+                true,
+                None,
+                false,
+                None,
+                false,
+                false,
+            );
+            Ok(())
+        }
+    }
+
+    #[actix_web::test]
+    async fn fetches_stage_summaries_from_origin_on_miss_and_serves_from_cache_on_hit() {
+        let cache = MemoryCache::new();
+        let calls = Arc::new(AtomicUsize::new(0));
+        let project_id = ProjectId::new(Uuid::new_v4());
+
+        let origin = CountedStageOrigin {
+            calls: calls.clone(),
+            project_id,
+        };
+
+        let cached = CachedStageSummaries::new(origin, cache.clone(), project_id);
+
+        // First print -> Miss (queries origin)
+        let mut dest1 = CollectingStageMedia::new();
+        cached.print(&mut dest1).await.unwrap();
+        assert_eq!(calls.load(Ordering::SeqCst), 1);
+        assert_eq!(dest1.items().len(), 1);
+
+        // Second print -> Hit (bypasses origin)
+        let mut dest2 = CollectingStageMedia::new();
+        cached.print(&mut dest2).await.unwrap();
+        assert_eq!(calls.load(Ordering::SeqCst), 1);
+        assert_eq!(dest2.items().len(), 1);
+    }
+}

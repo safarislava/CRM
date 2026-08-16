@@ -2,7 +2,7 @@ pub trait Password: Send + Sync + 'static {
     fn value(&self) -> Result<String, PasswordError>;
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum PasswordError {
     TooShort,
     TooLong,

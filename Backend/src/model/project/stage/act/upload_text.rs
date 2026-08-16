@@ -15,3 +15,14 @@ impl CommentText for ActUploadText {
         format!("Загружен акт: {}", self.filename)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn formats_act_upload_text() {
+        let text = ActUploadText::new("act_2025.pdf".to_string());
+        assert_eq!(text.text(), "Загружен акт: act_2025.pdf");
+    }
+}

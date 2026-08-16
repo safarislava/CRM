@@ -14,3 +14,17 @@ impl CommentId {
         self.id
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn creates_comment_id() {
+        let uuid = Uuid::new_v4();
+        let comment_id = CommentId::new(uuid);
+
+        assert_eq!(comment_id.id(), uuid);
+        assert_eq!(CommentId::new(uuid), comment_id);
+    }
+}

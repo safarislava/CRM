@@ -27,3 +27,53 @@ impl FromRequest for StageId {
         )))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use actix_web::test::TestRequest;
+    use uuid::Uuid;
+
+    #[actix_web::test]
+    async fn extracts_top_level_stage_id_from_two_tuple_path() {
+        let uuid = Uuid::new_v4();
+        let req = TestRequest::default()
+            .param("project_id", uuid.to_string())
+            .param("position", "2")
+            .to_http_request();
+
+        let mut payload = Payload::None;
+        let res = StageId::from_request(&req, &mut payload).await;
+
+        let expected = StageId::new(ProjectId::new(uuid), 2);
+        assert_eq!(res.unwrap(), expected);
+    }
+
+    #[actix_web::test]
+    async fn extracts_substage_id_from_three_tuple_path() {
+        let uuid = Uuid::new_v4();
+        let req = TestRequest::default()
+            .param("project_id", uuid.to_string())
+            .param("parent_position", "2")
+            .param("position", "5")
+            .to_http_request();
+
+        let mut payload = Payload::None;
+        let res = StageId::from_request(&req, &mut payload).await;
+
+        let expected = StageId::new_substage(ProjectId::new(uuid), 2, 5);
+        assert_eq!(res.unwrap(), expected);
+    }
+
+    #[actix_web::test]
+    async fn returns_bad_request_on_invalid_stage_path() {
+        let req = TestRequest::default()
+            .param("invalid", "path")
+            .to_http_request();
+
+        let mut payload = Payload::None;
+        let res = StageId::from_request(&req, &mut payload).await;
+
+        assert!(matches!(res, Err(ApiError::BadRequest(_))));
+    }
+}

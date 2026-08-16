@@ -77,3 +77,59 @@ impl actix_web::ResponseError for ApiError {
         HttpResponse::build(status).json(self.to_string())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use actix_web::ResponseError;
+
+    #[test]
+    fn maps_status_codes_and_responses_correctly() {
+        assert_eq!(
+            ApiError::BadRequest("invalid".to_string()).status_code(),
+            StatusCode::BAD_REQUEST
+        );
+        assert_eq!(
+            ApiError::Unauthorized("auth error".to_string()).status_code(),
+            StatusCode::UNAUTHORIZED
+        );
+        assert_eq!(
+            ApiError::Forbidden("access denied".to_string()).status_code(),
+            StatusCode::FORBIDDEN
+        );
+        assert_eq!(
+            ApiError::NotFound("not found".to_string()).status_code(),
+            StatusCode::NOT_FOUND
+        );
+        assert_eq!(
+            ApiError::Conflict("exists".to_string()).status_code(),
+            StatusCode::CONFLICT
+        );
+        assert_eq!(
+            ApiError::PayloadTooLarge.status_code(),
+            StatusCode::PAYLOAD_TOO_LARGE
+        );
+        assert_eq!(
+            ApiError::Internal("db crash".to_string()).status_code(),
+            StatusCode::INTERNAL_SERVER_ERROR
+        );
+    }
+
+    #[test]
+    fn converts_domain_username_and_password_errors_to_bad_request() {
+        let err: BoxError = Box::new(UsernameError::TooShort);
+        let api_err = ApiError::from(err);
+        assert_eq!(api_err.status_code(), StatusCode::BAD_REQUEST);
+
+        let pass_err: BoxError = Box::new(PasswordError::TooShort);
+        let api_err2 = ApiError::from(pass_err);
+        assert_eq!(api_err2.status_code(), StatusCode::BAD_REQUEST);
+    }
+
+    #[test]
+    fn converts_verification_wrong_error_to_unauthorized() {
+        let err: BoxError = Box::new(VerificationError::Wrong);
+        let api_err = ApiError::from(err);
+        assert_eq!(api_err.status_code(), StatusCode::UNAUTHORIZED);
+    }
+}

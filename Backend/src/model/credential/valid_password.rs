@@ -21,3 +21,33 @@ impl Password for ValidPassword {
         Ok(content)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::model::credential::raw_password::RawPassword;
+
+    #[test]
+    fn accepts_valid_password() {
+        assert_eq!(
+            ValidPassword::new(RawPassword::new("secret123".to_string())).value(),
+            Ok("secret123".to_string())
+        );
+    }
+
+    #[test]
+    fn rejects_too_short_password() {
+        assert_eq!(
+            ValidPassword::new(RawPassword::new("12345".to_string())).value(),
+            Err(PasswordError::TooShort)
+        );
+    }
+
+    #[test]
+    fn rejects_too_long_password() {
+        assert_eq!(
+            ValidPassword::new(RawPassword::new("a".repeat(73))).value(),
+            Err(PasswordError::TooLong)
+        );
+    }
+}

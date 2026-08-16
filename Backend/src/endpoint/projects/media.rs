@@ -25,3 +25,21 @@ impl ProjectMedia for JsonProjectMedia {
         });
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn serializes_project_media_to_json() {
+        let mut media = JsonProjectMedia::default();
+        let uuid = Uuid::nil();
+        let now = Utc::now();
+
+        media.add_project(uuid, "Project 1", now);
+
+        let json = serde_json::to_string(&media).unwrap();
+        assert!(json.contains("\"title\":\"Project 1\""));
+        assert!(json.contains(&uuid.to_string()));
+    }
+}

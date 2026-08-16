@@ -65,3 +65,38 @@ impl StageMedia for CollectingStageMedia {
         });
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn collects_added_stages_and_substages() {
+        let mut media = CollectingStageMedia::new();
+        let project_id = Uuid::new_v4();
+
+        media.add_stage(
+            project_id,
+            0,
+            1,
+            "Stage 1",
+            None,
+            false,
+            true,
+            Some(100),
+            true,
+            Some(200),
+            false,
+            true,
+        );
+
+        let items = media.items();
+        assert_eq!(items.len(), 1);
+        assert_eq!(items[0].project_id, project_id);
+        assert_eq!(items[0].parent_position, 0);
+        assert_eq!(items[0].position, 1);
+        assert_eq!(items[0].title, "Stage 1");
+        assert_eq!(items[0].advance_cost, Some(100));
+        assert_eq!(items[0].has_act, true);
+    }
+}

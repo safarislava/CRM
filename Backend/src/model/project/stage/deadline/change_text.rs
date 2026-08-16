@@ -24,3 +24,21 @@ impl CommentText for DeadlineChangeText {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::TimeZone;
+
+    #[test]
+    fn formats_deadline_change_and_removal() {
+        let old = Utc.with_ymd_and_hms(2025, 1, 1, 0, 0, 0).unwrap();
+        let new = Utc.with_ymd_and_hms(2025, 1, 15, 0, 0, 0).unwrap();
+
+        let change = DeadlineChangeText::new(old, Some(new));
+        assert_eq!(change.text(), "Дедлайн изменён: 01.01.2025 → 15.01.2025");
+
+        let removal = DeadlineChangeText::new(old, None);
+        assert_eq!(removal.text(), "Дедлайн удалён: 01.01.2025");
+    }
+}

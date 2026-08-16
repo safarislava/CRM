@@ -34,3 +34,34 @@ impl std::fmt::Display for ProjectId {
         write!(f, "{}", self.id)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashMap;
+
+    #[test]
+    fn creates_and_converts_project_id() {
+        let uuid = Uuid::new_v4();
+        let project_id = ProjectId::new(uuid);
+        let converted_uuid: Uuid = project_id.into();
+
+        assert_eq!(project_id.id(), uuid);
+        assert_eq!(converted_uuid, uuid);
+        assert_eq!(ProjectId::from(uuid), project_id);
+        assert_eq!(format!("{project_id}"), uuid.to_string());
+    }
+
+    #[test]
+    fn supports_equality_and_hashing() {
+        let uuid = Uuid::new_v4();
+        let id1 = ProjectId::new(uuid);
+        let id2 = ProjectId::new(uuid);
+
+        let mut map = HashMap::new();
+        map.insert(id1, "test_project");
+
+        assert_eq!(id1, id2);
+        assert_eq!(map.get(&id2), Some(&"test_project"));
+    }
+}

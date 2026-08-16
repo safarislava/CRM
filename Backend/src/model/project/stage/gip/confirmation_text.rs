@@ -19,3 +19,20 @@ impl CommentText for GipConfirmationText {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn formats_gip_confirmation_text() {
+        assert_eq!(
+            GipConfirmationText::new(true).text(),
+            "ГИП подтвердил выполнение"
+        );
+        assert_eq!(
+            GipConfirmationText::new(false).text(),
+            "ГИП снял подтверждение выполнения"
+        );
+    }
+}

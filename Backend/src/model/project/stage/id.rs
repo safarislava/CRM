@@ -36,3 +36,43 @@ impl StageId {
         self.position
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashMap;
+    use uuid::Uuid;
+
+    #[test]
+    fn creates_top_level_stage_id() {
+        let project_id = ProjectId::new(Uuid::new_v4());
+        let stage_id = StageId::new(project_id, 3);
+
+        assert_eq!(stage_id.project_id(), project_id);
+        assert_eq!(stage_id.parent_position(), 0);
+        assert_eq!(stage_id.position(), 3);
+    }
+
+    #[test]
+    fn creates_substage_id() {
+        let project_id = ProjectId::new(Uuid::new_v4());
+        let stage_id = StageId::new_substage(project_id, 2, 5);
+
+        assert_eq!(stage_id.project_id(), project_id);
+        assert_eq!(stage_id.parent_position(), 2);
+        assert_eq!(stage_id.position(), 5);
+    }
+
+    #[test]
+    fn supports_equality_and_hashing() {
+        let project_id = ProjectId::new(Uuid::new_v4());
+        let s1 = StageId::new_substage(project_id, 1, 2);
+        let s2 = StageId::new_substage(project_id, 1, 2);
+
+        let mut map = HashMap::new();
+        map.insert(s1, "substage");
+
+        assert_eq!(s1, s2);
+        assert_eq!(map.get(&s2), Some(&"substage"));
+    }
+}

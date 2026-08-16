@@ -19,3 +19,20 @@ impl CommentText for AdvancePaymentConfirmationText {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn formats_advance_payment_confirmation() {
+        assert_eq!(
+            AdvancePaymentConfirmationText::new(true).text(),
+            "Аванс подтверждён"
+        );
+        assert_eq!(
+            AdvancePaymentConfirmationText::new(false).text(),
+            "Подтверждение аванса снято"
+        );
+    }
+}

@@ -36,3 +36,52 @@ where
         Ok(result)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::model::cache::memory_cache::MemoryCache;
+    use crate::model::credential::raw_username::RawUsername;
+    use std::sync::Arc;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use uuid::Uuid;
+
+    struct CountedSearch {
+        calls: Arc<AtomicUsize>,
+        found_id: UserId,
+    }
+
+    #[async_trait]
+    impl UsernameSearch for CountedSearch {
+        async fn found(&self, _username: impl Username) -> Result<Option<UserId>, BoxError> {
+            self.calls.fetch_add(1, Ordering::SeqCst);
+            Ok(Some(self.found_id))
+        }
+    }
+
+    #[actix_web::test]
+    async fn searches_origin_on_miss_and_serves_from_cache_on_hit() {
+        let cache = MemoryCache::new();
+        let calls = Arc::new(AtomicUsize::new(0));
+        let user_id = UserId::new(Uuid::new_v4());
+
+        let origin = CountedSearch {
+            calls: calls.clone(),
+            found_id: user_id,
+        };
+        let search = CachedUsernameSearch::new(origin, cache);
+
+        let uname1 = RawUsername::new("john_doe".to_string());
+        let uname2 = RawUsername::new("john_doe".to_string());
+
+        // Miss
+        let res1 = search.found(uname1).await.unwrap();
+        assert_eq!(res1, Some(user_id));
+        assert_eq!(calls.load(Ordering::SeqCst), 1);
+
+        // Hit
+        let res2 = search.found(uname2).await.unwrap();
+        assert_eq!(res2, Some(user_id));
+        assert_eq!(calls.load(Ordering::SeqCst), 1);
+    }
+}

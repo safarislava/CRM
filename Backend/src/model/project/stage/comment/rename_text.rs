@@ -16,3 +16,17 @@ impl CommentText for RenameText {
         format!("Название изменено: «{}» → «{}»", self.old, self.new)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn formats_rename_comment_text() {
+        let comment = RenameText::new("Этап 1".to_string(), "Разработка РД".to_string());
+        assert_eq!(
+            comment.text(),
+            "Название изменено: «Этап 1» → «Разработка РД»"
+        );
+    }
+}

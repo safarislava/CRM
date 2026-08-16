@@ -15,3 +15,35 @@ impl FromRequest for ProjectId {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use actix_web::test::TestRequest;
+    use uuid::Uuid;
+
+    #[actix_web::test]
+    async fn extracts_project_id_from_valid_path() {
+        let uuid = Uuid::new_v4();
+        let req = TestRequest::default()
+            .param("project_id", uuid.to_string())
+            .to_http_request();
+
+        let mut payload = Payload::None;
+        let res = ProjectId::from_request(&req, &mut payload).await;
+
+        assert_eq!(res.unwrap(), ProjectId::new(uuid));
+    }
+
+    #[actix_web::test]
+    async fn returns_error_for_missing_or_invalid_path() {
+        let req = TestRequest::default()
+            .param("project_id", "invalid-uuid")
+            .to_http_request();
+
+        let mut payload = Payload::None;
+        let res = ProjectId::from_request(&req, &mut payload).await;
+
+        assert!(matches!(res, Err(ApiError::BadRequest(_))));
+    }
+}

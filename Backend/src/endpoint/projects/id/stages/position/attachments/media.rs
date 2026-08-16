@@ -39,3 +39,29 @@ impl AttachmentMedia for JsonAttachmentMedia {
         });
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn serializes_attachment_media_to_json() {
+        let mut media = JsonAttachmentMedia::default();
+        let att_id = Uuid::nil();
+        let now = Utc::now();
+
+        media.add_attachment(
+            att_id,
+            "blueprint.dwg",
+            "application/acad",
+            204800,
+            now,
+            "/api/download/123",
+        );
+
+        let json = serde_json::to_string(&media).unwrap();
+        assert!(json.contains("\"filename\":\"blueprint.dwg\""));
+        assert!(json.contains("\"size_bytes\":204800"));
+        assert!(json.contains("\"download_url\":\"/api/download/123\""));
+    }
+}

@@ -32,3 +32,49 @@ impl Username for ValidUsername {
         Ok(content)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::model::credential::raw_username::RawUsername;
+
+    #[actix_web::test]
+    async fn accepts_valid_alphanumeric_username() {
+        let res = ValidUsername::new(RawUsername::new("john_doe-12".to_string()))
+            .value()
+            .await;
+        assert_eq!(res.unwrap(), "john_doe-12");
+    }
+
+    #[actix_web::test]
+    async fn accepts_valid_cyrillic_username() {
+        let res = ValidUsername::new(RawUsername::new("Иван_Иванов".to_string()))
+            .value()
+            .await;
+        assert_eq!(res.unwrap(), "Иван_Иванов");
+    }
+
+    #[actix_web::test]
+    async fn rejects_too_short_username() {
+        let res = ValidUsername::new(RawUsername::new("ab".to_string()))
+            .value()
+            .await;
+        assert!(matches!(res, Err(UsernameError::TooShort)));
+    }
+
+    #[actix_web::test]
+    async fn rejects_too_long_username() {
+        let res = ValidUsername::new(RawUsername::new("a".repeat(51)))
+            .value()
+            .await;
+        assert!(matches!(res, Err(UsernameError::TooLong)));
+    }
+
+    #[actix_web::test]
+    async fn rejects_invalid_characters() {
+        let res = ValidUsername::new(RawUsername::new("user@name!".to_string()))
+            .value()
+            .await;
+        assert!(matches!(res, Err(UsernameError::InvalidChars)));
+    }
+}

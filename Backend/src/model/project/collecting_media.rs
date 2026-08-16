@@ -27,3 +27,23 @@ impl ProjectMedia for CollectingProjectMedia {
         });
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn collects_added_projects() {
+        let mut media = CollectingProjectMedia::new();
+        let uuid = Uuid::new_v4();
+        let now = Utc::now();
+
+        media.add_project(uuid, "Project Alpha", now);
+        let items = media.items();
+
+        assert_eq!(items.len(), 1);
+        assert_eq!(items[0].id, uuid);
+        assert_eq!(items[0].title, "Project Alpha");
+        assert_eq!(items[0].updated_at, now);
+    }
+}

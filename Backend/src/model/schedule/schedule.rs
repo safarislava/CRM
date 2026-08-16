@@ -29,3 +29,40 @@ impl Scheduled for Schedule {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::model::schedule::poll_interval::PollInterval;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::time::Duration;
+
+    struct CountTask(Arc<AtomicUsize>);
+
+    #[async_trait::async_trait]
+    impl Task for CountTask {
+        type Output = ();
+        async fn perform(&self) -> Result<(), BoxError> {
+            self.0.fetch_add(1, Ordering::SeqCst);
+            Ok(())
+        }
+    }
+
+    #[actix_web::test]
+    async fn executes_task_when_event_fires() {
+        let counter = Arc::new(AtomicUsize::new(0));
+        let event = Arc::new(PollInterval::new(Duration::from_millis(10)));
+        let task = Arc::new(CountTask(counter.clone()));
+        let schedule = Arc::new(Schedule::new(event, task));
+
+        let runner = schedule.clone();
+        let handle = actix_web::rt::spawn(async move {
+            let _ = runner.run().await;
+        });
+
+        actix_web::rt::time::sleep(Duration::from_millis(35)).await;
+        handle.abort();
+
+        assert!(counter.load(Ordering::SeqCst) >= 2);
+    }
+}

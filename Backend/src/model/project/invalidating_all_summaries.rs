@@ -30,3 +30,45 @@ where
         self.task.perform().await
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::model::cache::memory_cache::MemoryCache;
+    use std::sync::Arc;
+    use std::sync::atomic::{AtomicBool, Ordering};
+
+    struct FlagTask(Arc<AtomicBool>);
+
+    #[async_trait]
+    impl Task for FlagTask {
+        type Output = ();
+        async fn perform(&self) -> Result<(), BoxError> {
+            self.0.store(true, Ordering::SeqCst);
+            Ok(())
+        }
+    }
+
+    #[actix_web::test]
+    async fn performs_origin_task_and_evicts_all_summaries_cache() {
+        let cache = MemoryCache::new();
+        cache
+            .save(ProjectCacheKey::AllSummaries, vec![])
+            .await
+            .unwrap();
+
+        let flag = Arc::new(AtomicBool::new(false));
+        let decorator = InvalidatingAllSummaries::new(FlagTask(flag.clone()), cache.clone());
+
+        decorator.perform().await.unwrap();
+
+        assert!(flag.load(Ordering::SeqCst));
+        assert!(
+            cache
+                .value(&ProjectCacheKey::AllSummaries)
+                .await
+                .unwrap()
+                .is_none()
+        );
+    }
+}

@@ -76,3 +76,52 @@ impl fmt::Display for AuditAction {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn formats_audit_actions_correctly() {
+        assert_eq!(format!("{}", AuditAction::UserCreate), "user_create");
+        assert_eq!(
+            format!(
+                "{}",
+                AuditAction::ProjectRename {
+                    new_title: "Building A".to_string()
+                }
+            ),
+            "project_rename(title: 'Building A')"
+        );
+        assert_eq!(
+            format!("{}", AuditAction::StageReorder { to: 2 }),
+            "stage_reorder(to: 2)"
+        );
+        assert_eq!(
+            format!(
+                "{}",
+                AuditAction::DeadlineUpdate {
+                    new_deadline: Some("2026-12-31".to_string())
+                }
+            ),
+            "deadline_update(deadline: '2026-12-31')"
+        );
+        assert_eq!(
+            format!("{}", AuditAction::DeadlineUpdate { new_deadline: None }),
+            "deadline_update(deadline: 'none')"
+        );
+        assert_eq!(
+            format!("{}", AuditAction::GipConfirm { confirmed: true }),
+            "gip_confirm(confirmed: true)"
+        );
+        assert_eq!(
+            format!(
+                "{}",
+                AuditAction::ActUpload {
+                    filename: "act_01.pdf".to_string()
+                }
+            ),
+            "act_upload(file: 'act_01.pdf')"
+        );
+    }
+}

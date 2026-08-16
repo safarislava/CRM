@@ -39,3 +39,22 @@ impl File for FileContent {
             .await
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn provides_file_attributes() {
+        let payload = vec![1, 2, 3, 4, 5];
+        let file = FileContent::new(
+            "act.pdf".to_string(),
+            "application/pdf".to_string(),
+            payload,
+        );
+
+        assert_eq!(file.name(), "act.pdf");
+        assert_eq!(file.media_type(), "application/pdf");
+        assert_eq!(file.size_bytes(), 5);
+    }
+}
