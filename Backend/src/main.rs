@@ -14,7 +14,7 @@ use crate::logger::{AppLogs, RollingLogs};
 use crate::mail::Mailer;
 use crate::model::cache::memory_cache::MemoryCache;
 use crate::model::notification::deadline_digest_notification::DeadlineDigestNotification;
-use crate::model::notification::notification_dispatch::NotificationDispatch;
+use crate::model::notification::dispatch::NotificationDispatch;
 use crate::model::schedule::contract::scheduled::Scheduled;
 use crate::model::schedule::poll_interval::PollInterval;
 use crate::model::schedule::schedule::Schedule;

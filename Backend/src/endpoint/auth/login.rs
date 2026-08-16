@@ -11,7 +11,7 @@ use crate::model::user::cached_username_search::CachedUsernameSearch;
 use crate::model::user::contract::username_search::UsernameSearch;
 use crate::model::user::tokens_issuance::TokenIssuance;
 use crate::model::user::users::Users;
-use crate::model::user::verification_protected_user::VerificationProtectedUser;
+use crate::model::user::verification_protected::VerificationProtectedUser;
 use crate::state::AppState;
 use actix_web::{HttpResponse, web};
 use serde::Deserialize;

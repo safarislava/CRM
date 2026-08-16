@@ -2,7 +2,7 @@ use crate::model::contract::box_error::BoxError;
 use crate::model::credential::contract::username::Username;
 use crate::model::project::contract::list::List;
 use crate::model::user::contract::username_search::UsernameSearch;
-use crate::model::user::user::UserId;
+use crate::model::user::id::UserId;
 use sqlx::{Error, PgPool};
 use std::sync::Arc;
 use uuid::Uuid;

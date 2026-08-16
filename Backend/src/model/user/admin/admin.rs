@@ -1,6 +1,6 @@
 use crate::endpoint::api_error::ApiError;
 use crate::model::user::contract::admin_access::AdminAccess;
-use crate::model::user::user::UserId;
+use crate::model::user::id::UserId;
 
 #[derive(Clone, Debug)]
 pub struct Admin {

@@ -1,5 +1,5 @@
 use crate::model::user::contract::user_verification::VerificationError;
-use crate::model::user::user::UserId;
+use crate::model::user::id::UserId;
 
 #[async_trait::async_trait]
 pub trait ProtectedUser: Send + Sync {

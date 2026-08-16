@@ -1,7 +1,7 @@
 use crate::endpoint::api_error::ApiError;
 use crate::model::contract::task::Task;
-use crate::model::project::stage::comment::comment::CommentId;
-use crate::model::project::stage::comment::comment_removal::CommentRemoval;
+use crate::model::project::stage::comment::id::CommentId;
+use crate::model::project::stage::comment::removal::CommentRemoval;
 use crate::state::AppState;
 use actix_web::{HttpResponse, web};
 use uuid::Uuid;

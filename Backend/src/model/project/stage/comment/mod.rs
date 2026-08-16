@@ -1,8 +1,8 @@
-pub mod comment;
-pub mod comment_creation;
-pub mod comment_pinning;
-pub mod comment_removal;
-pub mod comment_summaries;
-pub mod pinned_comment_summaries;
+pub mod creation;
+pub mod id;
+pub mod pinned_summaries;
+pub mod pinning;
+pub mod removal;
 pub mod rename_text;
-pub mod system_comment_creation;
+pub mod summaries;
+pub mod system_creation;

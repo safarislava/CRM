@@ -1,5 +1,5 @@
 use crate::model::credential::contract::username::{Username, UsernameError};
-use crate::model::user::user::UserId;
+use crate::model::user::id::UserId;
 use async_trait::async_trait;
 use sqlx::PgPool;
 use std::sync::Arc;

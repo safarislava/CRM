@@ -7,7 +7,7 @@ use crate::model::credential::hashed_password::HashedPassword;
 use crate::model::credential::raw_password::RawPassword;
 use crate::model::credential::valid_password::ValidPassword;
 use crate::model::user::password_update::PasswordUpdate;
-use crate::model::user::verification_protected_user::VerificationProtectedUser;
+use crate::model::user::verification_protected::VerificationProtectedUser;
 use crate::state::AppState;
 use actix_web::{HttpRequest, HttpResponse, web};
 use serde::Deserialize;

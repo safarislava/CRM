@@ -1,6 +1,0 @@
-use crate::model::project::project::ProjectId;
-
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub enum StageCacheKey {
-    ByProjectId(ProjectId),
-}

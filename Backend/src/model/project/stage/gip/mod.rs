@@ -1,5 +1,5 @@
-pub mod gip_confirmation;
-pub mod gip_confirmation_text;
-pub mod logged_gip_confirmation;
-pub mod notified_gip_confirmation;
-pub mod stage_gip_confirmed_receipt;
+pub mod confirmation;
+pub mod confirmation_text;
+pub mod confirmed_receipt;
+pub mod logged_confirmation;
+pub mod notified_confirmation;

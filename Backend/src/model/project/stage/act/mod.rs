@@ -1,5 +1,5 @@
-pub mod act_summaries;
-pub mod act_upload;
-pub mod act_upload_text;
-pub mod logged_act_upload;
-pub mod notified_act_upload;
+pub mod logged_upload;
+pub mod notified_upload;
+pub mod summaries;
+pub mod upload;
+pub mod upload_text;

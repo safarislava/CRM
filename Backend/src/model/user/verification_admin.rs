@@ -1,7 +1,7 @@
 use crate::endpoint::api_error::ApiError;
 use crate::model::user::admin::Admin;
 use crate::model::user::contract::admin_access::AdminAccess;
-use crate::model::user::user::UserId;
+use crate::model::user::id::UserId;
 use sqlx::PgPool;
 use std::sync::Arc;
 

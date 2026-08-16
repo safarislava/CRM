@@ -1,5 +1,5 @@
 use crate::model::user::admin::Admin;
-use crate::model::user::user::UserId;
+use crate::model::user::id::UserId;
 use actix_web::{HttpMessage, HttpRequest};
 
 pub trait AuthHeader {

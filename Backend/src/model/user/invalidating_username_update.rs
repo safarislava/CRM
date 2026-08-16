@@ -2,8 +2,8 @@ use crate::model::cache::contract::cache::Cache;
 use crate::model::cache::invalidating_task::InvalidatingTask;
 use crate::model::contract::box_error::BoxError;
 use crate::model::contract::task::Task;
-use crate::model::user::user::UserId;
-use crate::model::user::user_cache_key::UserCacheKey;
+use crate::model::user::cache_key::UserCacheKey;
+use crate::model::user::id::UserId;
 use async_trait::async_trait;
 
 pub struct InvalidatingUsernameUpdate<T, C> {

@@ -1,9 +1,9 @@
 use crate::endpoint::api_error::ApiError;
 use crate::endpoint::json_comment_media::JsonCommentMedia;
 use crate::model::contract::printer::Printer;
-use crate::model::project::project::ProjectId;
-use crate::model::project::stage::comment::comment_summaries::CommentSummaries;
-use crate::model::project::stage::stage_id::StageId;
+use crate::model::project::id::ProjectId;
+use crate::model::project::stage::comment::summaries::CommentSummaries;
+use crate::model::project::stage::id::StageId;
 use crate::state::AppState;
 use actix_web::{HttpResponse, web};
 use serde::Deserialize;

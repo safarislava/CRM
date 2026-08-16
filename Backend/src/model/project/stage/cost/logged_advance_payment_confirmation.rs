@@ -2,12 +2,12 @@ use crate::model::contract::box_error::BoxError;
 use crate::model::contract::comment_text::CommentText;
 use crate::model::contract::task::Task;
 use crate::model::contract::value::Value;
-use crate::model::project::stage::comment::system_comment_creation::SystemCommentCreation;
+use crate::model::project::stage::comment::system_creation::SystemCommentCreation;
 use crate::model::project::stage::cost::advance_payment_confirmation::AdvancePaymentConfirmation;
 use crate::model::project::stage::cost::advance_payment_confirmation_text::AdvancePaymentConfirmationText;
-use crate::model::project::stage::cost::stage_advance_payment_confirmed_receipt::StageAdvancePaymentConfirmedReceipt;
-use crate::model::project::stage::stage_id::StageId;
-use crate::model::user::user::UserId;
+use crate::model::project::stage::cost::advance_payment_confirmed_receipt::StageAdvancePaymentConfirmedReceipt;
+use crate::model::project::stage::id::StageId;
+use crate::model::user::id::UserId;
 use sqlx::PgPool;
 use std::sync::Arc;
 

@@ -1,8 +1,8 @@
 use crate::endpoint::api_error::ApiError;
 use crate::endpoint::json_project_media::JsonProjectMedia;
 use crate::model::contract::printer::Printer;
-use crate::model::project::cached_project_summaries::CachedProjectSummaries;
-use crate::model::project::project_summaries::ProjectSummaries;
+use crate::model::project::cached_summaries::CachedProjectSummaries;
+use crate::model::project::summaries::ProjectSummaries;
 use crate::state::AppState;
 use actix_web::{HttpResponse, web};
 

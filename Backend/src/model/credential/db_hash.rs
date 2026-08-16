@@ -1,5 +1,5 @@
 use crate::model::credential::contract::hash::{Hash, HashError};
-use crate::model::user::user::UserId;
+use crate::model::user::id::UserId;
 use sqlx::PgPool;
 use std::sync::Arc;
 
