@@ -1,5 +1,5 @@
+use super::media::JsonAttachmentMedia;
 use crate::endpoint::api_error::ApiError;
-use crate::endpoint::json_attachment_media::JsonAttachmentMedia;
 use crate::model::contract::printer::Printer;
 use crate::model::project::id::ProjectId;
 use crate::model::project::stage::attachment::summaries::AttachmentSummaries;

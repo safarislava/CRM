@@ -1,5 +1,5 @@
 use crate::endpoint::api_error::ApiError;
-use crate::endpoint::json_comment_media::JsonCommentMedia;
+use crate::endpoint::projects::id::stages::position::comments::media::JsonCommentMedia;
 use crate::model::contract::printer::Printer;
 use crate::model::project::id::ProjectId;
 use crate::model::project::stage::comment::summaries::CommentSummaries;
