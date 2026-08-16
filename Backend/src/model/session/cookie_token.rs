@@ -33,3 +33,39 @@ impl Cookie for CookieToken {
         )
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    struct DummyToken(&'static str);
+
+    #[async_trait::async_trait]
+    impl Token for DummyToken {
+        async fn value(&self) -> Result<String, BoxError> {
+            Ok(self.0.to_string())
+        }
+    }
+
+    #[actix_web::test]
+    async fn creates_secure_cookie() {
+        let cookie = CookieToken::new(
+            "refresh_token".to_string(),
+            Box::new(DummyToken("dummy_val")),
+            Duration::days(7),
+        )
+        .value()
+        .await
+        .unwrap();
+
+        assert_eq!(cookie.name(), "refresh_token");
+        assert_eq!(cookie.value(), "dummy_val");
+        assert_eq!(cookie.path(), Some("/api/auth"));
+        assert_eq!(cookie.http_only(), Some(true));
+        assert_eq!(cookie.secure(), Some(true));
+        assert_eq!(
+            cookie.same_site(),
+            Some(actix_web::cookie::SameSite::Strict)
+        );
+    }
+}
