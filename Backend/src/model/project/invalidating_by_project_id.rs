@@ -38,3 +38,60 @@ where
         self.task.perform().await
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::model::cache::memory_cache::MemoryCache;
+    use std::sync::Arc;
+    use std::sync::atomic::{AtomicBool, Ordering};
+    use uuid::Uuid;
+
+    struct FlagTask(Arc<AtomicBool>);
+
+    #[async_trait]
+    impl Task for FlagTask {
+        type Output = ();
+        async fn perform(&self) -> Result<(), BoxError> {
+            self.0.store(true, Ordering::SeqCst);
+            Ok(())
+        }
+    }
+
+    #[actix_web::test]
+    async fn evicts_all_summaries_and_project_id_from_cache() {
+        let cache = MemoryCache::new();
+        let project_id = ProjectId::new(Uuid::new_v4());
+
+        cache
+            .save(ProjectCacheKey::AllSummaries, vec![])
+            .await
+            .unwrap();
+        cache
+            .save(ProjectCacheKey::ByProjectId(project_id), vec![])
+            .await
+            .unwrap();
+
+        let flag = Arc::new(AtomicBool::new(false));
+        let decorator =
+            InvalidatingByProjectId::new(FlagTask(flag.clone()), cache.clone(), project_id);
+
+        decorator.perform().await.unwrap();
+
+        assert!(flag.load(Ordering::SeqCst));
+        assert!(
+            cache
+                .value(&ProjectCacheKey::AllSummaries)
+                .await
+                .unwrap()
+                .is_none()
+        );
+        assert!(
+            cache
+                .value(&ProjectCacheKey::ByProjectId(project_id))
+                .await
+                .unwrap()
+                .is_none()
+        );
+    }
+}
