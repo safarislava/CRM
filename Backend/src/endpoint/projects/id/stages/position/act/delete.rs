@@ -6,7 +6,7 @@ use crate::model::contract::task::Task;
 use crate::model::project::id::ProjectId;
 use crate::model::project::stage::attachment::id::AttachmentId;
 use crate::model::project::stage::attachment::logged_removal::LoggedAttachmentRemoval;
-use crate::model::project::stage::invalidating_task::InvalidatingStageTask;
+use crate::model::project::stage::invalidating_by_project_id::InvalidatingByProjectId;
 use crate::state::AppState;
 use actix_web::{HttpRequest, HttpResponse, web};
 use uuid::Uuid;
@@ -25,7 +25,7 @@ pub async fn delete(
         user.clone(),
         AuditAction::ActDelete,
         act_id,
-        InvalidatingStageTask::new(
+        InvalidatingByProjectId::new(
             LoggedAttachmentRemoval::new(
                 state.pool.clone(),
                 state.storage.clone(),

@@ -12,7 +12,7 @@ pub mod collecting_media;
 pub mod detailed;
 pub mod id;
 pub mod insertion;
-pub mod invalidating_task;
+pub mod invalidating_by_project_id;
 pub mod logged_rename;
 pub mod removal;
 pub mod rename;

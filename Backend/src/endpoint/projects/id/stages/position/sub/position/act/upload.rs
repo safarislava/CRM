@@ -5,7 +5,7 @@ use crate::model::project::file_content::FileContent;
 use crate::model::project::id::ProjectId;
 use crate::model::project::stage::act::logged_upload::LoggedActUpload;
 use crate::model::project::stage::id::StageId;
-use crate::model::project::stage::invalidating_task::InvalidatingStageTask;
+use crate::model::project::stage::invalidating_by_project_id::InvalidatingByProjectId;
 use crate::state::AppState;
 use actix_multipart::Multipart;
 use actix_web::{HttpRequest, HttpResponse, web};
@@ -59,7 +59,7 @@ pub async fn post(
         .map(|kind| kind.mime_type().to_string())
         .unwrap_or_else(|| "application/octet-stream".to_string());
     let file = FileContent::new(filename, mime_type, data);
-    InvalidatingStageTask::new(
+    InvalidatingByProjectId::new(
         LoggedActUpload::new(
             state.pool.clone(),
             state.storage.clone(),

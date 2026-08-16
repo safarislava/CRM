@@ -5,7 +5,7 @@ use crate::model::audit::AuditedTask;
 use crate::model::contract::task::Task;
 use crate::model::project::id::ProjectId;
 use crate::model::project::stage::appending::StageAppending;
-use crate::model::project::stage::invalidating_task::InvalidatingStageTask;
+use crate::model::project::stage::invalidating_by_project_id::InvalidatingByProjectId;
 use crate::state::AppState;
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, web};
@@ -33,7 +33,7 @@ pub async fn create(
         user,
         AuditAction::StageCreate,
         format!("{raw_project_id}:{title}"),
-        InvalidatingStageTask::new(
+        InvalidatingByProjectId::new(
             StageAppending::new(state.pool.clone(), project_id, title),
             state.stage_cache.clone(),
             project_id,

@@ -6,7 +6,7 @@ use crate::model::contract::task::Task;
 use crate::model::project::id::ProjectId;
 use crate::model::project::stage::gip::logged_confirmation::LoggedGipConfirmation;
 use crate::model::project::stage::id::StageId;
-use crate::model::project::stage::invalidating_task::InvalidatingStageTask;
+use crate::model::project::stage::invalidating_by_project_id::InvalidatingByProjectId;
 use crate::state::AppState;
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, web};
@@ -36,7 +36,7 @@ pub async fn patch(
             confirmed: body.confirmed,
         },
         format!("{project_id}:{position}"),
-        InvalidatingStageTask::new(
+        InvalidatingByProjectId::new(
             LoggedGipConfirmation::new(state.pool.clone(), stage_id, user, body.confirmed),
             state.stage_cache.clone(),
             project_id_obj,

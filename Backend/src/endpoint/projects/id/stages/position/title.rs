@@ -5,7 +5,7 @@ use crate::model::audit::AuditedTask;
 use crate::model::contract::task::Task;
 use crate::model::project::id::ProjectId;
 use crate::model::project::stage::id::StageId;
-use crate::model::project::stage::invalidating_task::InvalidatingStageTask;
+use crate::model::project::stage::invalidating_by_project_id::InvalidatingByProjectId;
 use crate::model::project::stage::logged_rename::LoggedStageRename;
 use crate::state::AppState;
 use actix_web::web::Json;
@@ -37,7 +37,7 @@ pub async fn patch(
             new_title: title.clone(),
         },
         format!("{project_id}:{position}"),
-        InvalidatingStageTask::new(
+        InvalidatingByProjectId::new(
             LoggedStageRename::new(state.pool.clone(), stage_id, user, title),
             state.stage_cache.clone(),
             project_id_obj,

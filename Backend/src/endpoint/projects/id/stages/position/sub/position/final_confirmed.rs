@@ -4,7 +4,7 @@ use crate::model::contract::task::Task;
 use crate::model::project::id::ProjectId;
 use crate::model::project::stage::cost::r#final::logged_payment_confirmation::LoggedFinalPaymentConfirmation;
 use crate::model::project::stage::id::StageId;
-use crate::model::project::stage::invalidating_task::InvalidatingStageTask;
+use crate::model::project::stage::invalidating_by_project_id::InvalidatingByProjectId;
 use crate::state::AppState;
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, web};
@@ -27,7 +27,7 @@ pub async fn patch(
         .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
     let (project_id, parent_position, position) = path.into_inner();
     let project_id_obj = ProjectId::new(project_id);
-    InvalidatingStageTask::new(
+    InvalidatingByProjectId::new(
         LoggedFinalPaymentConfirmation::new(
             state.pool.clone(),
             StageId::new_substage(ProjectId::new(project_id), parent_position, position),

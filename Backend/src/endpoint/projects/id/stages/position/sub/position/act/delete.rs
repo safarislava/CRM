@@ -1,10 +1,12 @@
 use crate::endpoint::api_error::ApiError;
 use crate::endpoint::auth_header::AuthHeader;
+use crate::model::audit::AuditAction;
+use crate::model::audit::AuditedTask;
 use crate::model::contract::task::Task;
 use crate::model::project::id::ProjectId;
 use crate::model::project::stage::attachment::id::AttachmentId;
 use crate::model::project::stage::attachment::logged_removal::LoggedAttachmentRemoval;
-use crate::model::project::stage::invalidating_task::InvalidatingStageTask;
+use crate::model::project::stage::invalidating_by_project_id::InvalidatingByProjectId;
 use crate::state::AppState;
 use actix_web::{HttpRequest, HttpResponse, web};
 use uuid::Uuid;
@@ -17,17 +19,22 @@ pub async fn delete(
     let user = request
         .user()
         .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
-    let (project_id, _, _, act_id) = path.into_inner();
+    let (project_id, _parent, _pos, act_id) = path.into_inner();
     let project_id_obj = ProjectId::new(project_id);
-    InvalidatingStageTask::new(
-        LoggedAttachmentRemoval::new(
-            state.pool.clone(),
-            state.storage.clone(),
-            AttachmentId::new(act_id),
-            user,
+    AuditedTask::new(
+        user.clone(),
+        AuditAction::ActDelete,
+        act_id,
+        InvalidatingByProjectId::new(
+            LoggedAttachmentRemoval::new(
+                state.pool.clone(),
+                state.storage.clone(),
+                AttachmentId::new(act_id),
+                user,
+            ),
+            state.stage_cache.clone(),
+            project_id_obj,
         ),
-        state.stage_cache.clone(),
-        project_id_obj,
     )
     .perform()
     .await

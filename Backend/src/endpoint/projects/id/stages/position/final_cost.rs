@@ -6,7 +6,7 @@ use crate::model::contract::task::Task;
 use crate::model::project::id::ProjectId;
 use crate::model::project::stage::cost::r#final::logged_update::LoggedFinalCostUpdate;
 use crate::model::project::stage::id::StageId;
-use crate::model::project::stage::invalidating_task::InvalidatingStageTask;
+use crate::model::project::stage::invalidating_by_project_id::InvalidatingByProjectId;
 use crate::state::AppState;
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, web};
@@ -36,7 +36,7 @@ pub async fn patch(
             new_cost: body.cost,
         },
         format!("{project_id}:{position}"),
-        InvalidatingStageTask::new(
+        InvalidatingByProjectId::new(
             LoggedFinalCostUpdate::new(state.pool.clone(), stage_id, user, body.cost),
             state.stage_cache.clone(),
             project_id_obj,

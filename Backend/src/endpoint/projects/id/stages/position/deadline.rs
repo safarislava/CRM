@@ -6,7 +6,7 @@ use crate::model::contract::task::Task;
 use crate::model::project::id::ProjectId;
 use crate::model::project::stage::deadline::logged_update::LoggedDeadlineUpdate;
 use crate::model::project::stage::id::StageId;
-use crate::model::project::stage::invalidating_task::InvalidatingStageTask;
+use crate::model::project::stage::invalidating_by_project_id::InvalidatingByProjectId;
 use crate::state::AppState;
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, web};
@@ -38,7 +38,7 @@ pub async fn patch(
             new_deadline: deadline_str,
         },
         format!("{project_id}:{position}"),
-        InvalidatingStageTask::new(
+        InvalidatingByProjectId::new(
             LoggedDeadlineUpdate::new(state.pool.clone(), stage_id, user, body.deadline),
             state.stage_cache.clone(),
             project_id_obj,

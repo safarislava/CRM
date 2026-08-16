@@ -1,7 +1,7 @@
 use crate::endpoint::api_error::ApiError;
 use crate::model::contract::task::Task;
 use crate::model::project::id::ProjectId;
-use crate::model::project::stage::invalidating_task::InvalidatingStageTask;
+use crate::model::project::stage::invalidating_by_project_id::InvalidatingByProjectId;
 use crate::model::project::stage::reordering::StageReordering;
 use crate::state::AppState;
 use actix_web::web::Json;
@@ -21,7 +21,7 @@ pub async fn patch(
 ) -> Result<HttpResponse, ApiError> {
     let (project_id, parent_position, position) = path.into_inner();
     let project_id_obj = ProjectId::new(project_id);
-    InvalidatingStageTask::new(
+    InvalidatingByProjectId::new(
         StageReordering::sub(
             state.pool.clone(),
             ProjectId::new(project_id),
