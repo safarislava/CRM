@@ -11,19 +11,19 @@ sqlx = { version = "0.9.0-alpha.1", features = [ "runtime-tokio", "postgres", "u
 uuid = { version = "1.22.0", features = ["v4", "serde"] }
 chrono = { version = "0.4.44", features = ["serde"] }
 dotenvy = "0.15.7"
-jsonwebtoken = { version = "10.4.0", features = ["rust_crypto"] }
+jsonwebtoken = { version = "11.0.0", features = ["rust_crypto"] }
 bcrypt = "0.19.1"
 serde_json = "1"
 aws-sdk-s3 = "1"
 actix-multipart = "0.8.0"
 actix-governor = "0.10.0"
 futures-util = "0.3"
-bytes = "1"
 tokio-util = { version = "0.7", features = ["io"] }
-infer = "0.19.0"
+infer = "0.22.0"
 async-trait = "0.1"
 lettre = { version = "0.11", default-features = false, features = ["builder", "smtp-transport", "tokio1-native-tls"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json", "registry"] }
 tracing-appender = "0.2"
 tracing-actix-web = "0.7"
+bytes = "1.11.1"
