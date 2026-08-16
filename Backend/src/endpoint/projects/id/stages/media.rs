@@ -57,3 +57,34 @@ impl StageMedia for JsonStageMedia {
         });
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn serializes_stage_media_to_json() {
+        let mut media = JsonStageMedia::default();
+        let project_id = Uuid::nil();
+
+        media.add_stage(
+            project_id,
+            0,
+            1,
+            "Concept Design",
+            None,
+            false,
+            true,
+            Some(50000),
+            true,
+            Some(100000),
+            false,
+            true,
+        );
+
+        let json = serde_json::to_string(&media).unwrap();
+        assert!(json.contains("\"title\":\"Concept Design\""));
+        assert!(json.contains("\"advance_cost\":50000"));
+        assert!(json.contains("\"has_act\":true"));
+    }
+}
