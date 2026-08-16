@@ -7,11 +7,11 @@ use crate::model::project::stage::cache_key::StageCacheKey;
 use crate::model::project::stage::collecting_media::StageSummaryItem;
 use async_trait::async_trait;
 
-pub struct InvalidatingStageTask<T, C> {
+pub struct InvalidatingByProjectId<T, C> {
     task: InvalidatingTask<T, C, StageCacheKey, Vec<StageSummaryItem>>,
 }
 
-impl<T, C> InvalidatingStageTask<T, C> {
+impl<T, C> InvalidatingByProjectId<T, C> {
     pub fn new(origin: T, cache: C, project_id: ProjectId) -> Self {
         Self {
             task: InvalidatingTask::single(origin, cache, StageCacheKey::ByProjectId(project_id)),
@@ -20,7 +20,7 @@ impl<T, C> InvalidatingStageTask<T, C> {
 }
 
 #[async_trait]
-impl<T, C> Task for InvalidatingStageTask<T, C>
+impl<T, C> Task for InvalidatingByProjectId<T, C>
 where
     T: Task<Output = ()> + Send + Sync,
     C: Cache<StageCacheKey, Vec<StageSummaryItem>> + Send + Sync,

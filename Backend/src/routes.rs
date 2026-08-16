@@ -158,83 +158,83 @@ pub fn configure(config: &mut web::ServiceConfig) {
                             )
                             .service(
                                 web::resource("/{project_id}/stages/{stage_id}/sub/{sub_id}")
-                                    .get(endpoint::projects::id::stages::position::sub::position::get::get)
-                                    .delete(endpoint::projects::id::stages::position::sub::position::delete::delete),
+                                    .get(endpoint::projects::id::stages::position::get::get)
+                                    .delete(endpoint::projects::id::stages::position::delete::delete),
                             )
                             .service(
                                 web::resource("/{project_id}/stages/{stage_id}/sub/{sub_id}/title")
-                                    .patch(endpoint::projects::id::stages::position::sub::position::title::patch),
+                                    .patch(endpoint::projects::id::stages::position::title::patch),
                             )
                             .service(
                                 web::resource("/{project_id}/stages/{stage_id}/sub/{sub_id}/position")
-                                    .patch(endpoint::projects::id::stages::position::sub::position::reorder::patch),
+                                    .patch(endpoint::projects::id::stages::position::reorder::patch),
                             )
                             .service(
                                 web::resource("/{project_id}/stages/{stage_id}/sub/{sub_id}/deadline")
-                                    .patch(endpoint::projects::id::stages::position::sub::position::deadline::patch),
+                                    .patch(endpoint::projects::id::stages::position::deadline::patch),
                             )
                             .service(
                                 web::resource("/{project_id}/stages/{stage_id}/sub/{sub_id}/advance-cost")
-                                    .patch(endpoint::projects::id::stages::position::sub::position::advance_cost::patch),
+                                    .patch(endpoint::projects::id::stages::position::advance_cost::patch),
                             )
                             .service(
                                 web::resource("/{project_id}/stages/{stage_id}/sub/{sub_id}/final-cost")
-                                    .patch(endpoint::projects::id::stages::position::sub::position::final_cost::patch),
+                                    .patch(endpoint::projects::id::stages::position::final_cost::patch),
                             )
                             .service(
                                 web::resource("/{project_id}/stages/{stage_id}/sub/{sub_id}/gip-confirmed")
-                                    .patch(endpoint::projects::id::stages::position::sub::position::gip_confirmed::patch),
+                                    .patch(endpoint::projects::id::stages::position::gip_confirmed::patch),
                             )
                             .service(
                                 web::resource("/{project_id}/stages/{stage_id}/sub/{sub_id}/advance-confirmed")
-                                    .patch(endpoint::projects::id::stages::position::sub::position::advance_confirmed::patch),
+                                    .patch(endpoint::projects::id::stages::position::advance_confirmed::patch),
                             )
                             .service(
                                 web::resource("/{project_id}/stages/{stage_id}/sub/{sub_id}/final-confirmed")
-                                    .patch(endpoint::projects::id::stages::position::sub::position::final_confirmed::patch),
+                                    .patch(endpoint::projects::id::stages::position::final_confirmed::patch),
                             )
                             .service(
                                 web::resource("/{project_id}/stages/{stage_id}/sub/{sub_id}/act")
-                                    .get(endpoint::projects::id::stages::position::sub::position::act::list::get)
-                                    .post(endpoint::projects::id::stages::position::sub::position::act::upload::post),
+                                    .get(endpoint::projects::id::stages::position::act::list::get)
+                                    .post(endpoint::projects::id::stages::position::act::upload::post),
                             )
                             .service(
                                 web::resource("/{project_id}/stages/{stage_id}/sub/{sub_id}/act/{act_id}")
-                                    .delete(endpoint::projects::id::stages::position::sub::position::act::delete::delete),
+                                    .delete(endpoint::projects::id::stages::position::act::delete::delete),
                             )
                             .service(
                                 web::resource("/{project_id}/stages/{stage_id}/sub/{sub_id}/act/{act_id}/download")
-                                    .get(endpoint::projects::id::stages::position::sub::position::act::download::get),
+                                    .get(endpoint::projects::id::stages::position::act::download::get),
                             )
                             .service(
                                 web::resource("/{project_id}/stages/{stage_id}/sub/{sub_id}/attachments")
-                                    .get(endpoint::projects::id::stages::position::sub::position::attachments::list::get)
-                                    .post(endpoint::projects::id::stages::position::sub::position::attachments::upload::post),
+                                    .get(endpoint::projects::id::stages::position::attachments::list::get)
+                                    .post(endpoint::projects::id::stages::position::attachments::upload::post),
                             )
                             .service(
                                 web::resource("/{project_id}/stages/{stage_id}/sub/{sub_id}/attachments/{attachment_id}/download")
-                                    .get(endpoint::projects::id::stages::position::sub::position::attachments::download::get),
+                                    .get(endpoint::projects::id::stages::position::attachments::download::get),
                             )
                             .service(
                                 web::resource("/{project_id}/stages/{stage_id}/sub/{sub_id}/attachments/{attachment_id}")
-                                    .delete(endpoint::projects::id::stages::position::sub::position::attachments::delete::delete),
+                                    .delete(endpoint::projects::id::stages::position::attachments::delete::delete),
                             )
                             .service(
                                 web::resource("/{project_id}/stages/{stage_id}/sub/{sub_id}/comments")
-                                    .get(endpoint::projects::id::stages::position::sub::position::comments::list::get)
-                                    .post(endpoint::projects::id::stages::position::sub::position::comments::create::post),
+                                    .get(endpoint::projects::id::stages::position::comments::list::get)
+                                    .post(endpoint::projects::id::stages::position::comments::create::post),
                             )
                             .service(
                                 web::resource("/{project_id}/stages/{stage_id}/sub/{sub_id}/comments/pinned")
-                                    .get(endpoint::projects::id::stages::position::sub::position::comments::pinned::get),
+                                    .get(endpoint::projects::id::stages::position::comments::pinned::get),
                             )
                             .service(
                                 web::resource("/{project_id}/stages/{stage_id}/sub/{sub_id}/comments/{comment_id}")
-                                    .delete(endpoint::projects::id::stages::position::sub::position::comments::delete::delete),
+                                    .delete(endpoint::projects::id::stages::position::comments::delete::delete),
                             )
                             .service(
                                 web::resource("/{project_id}/stages/{stage_id}/sub/{sub_id}/comments/{comment_id}/pin")
-                                    .patch(endpoint::projects::id::stages::position::sub::position::comments::pin::patch),
+                                    .patch(endpoint::projects::id::stages::position::comments::pin::patch),
                             ),
                     ),
             ),

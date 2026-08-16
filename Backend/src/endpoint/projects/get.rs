@@ -1,5 +1,5 @@
+use super::media::JsonProjectMedia;
 use crate::endpoint::api_error::ApiError;
-use crate::endpoint::json_project_media::JsonProjectMedia;
 use crate::model::contract::printer::Printer;
 use crate::model::project::cached_summaries::CachedProjectSummaries;
 use crate::model::project::summaries::ProjectSummaries;

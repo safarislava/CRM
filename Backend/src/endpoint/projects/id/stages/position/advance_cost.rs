@@ -3,15 +3,13 @@ use crate::endpoint::auth_header::AuthHeader;
 use crate::model::audit::AuditAction;
 use crate::model::audit::AuditedTask;
 use crate::model::contract::task::Task;
-use crate::model::project::id::ProjectId;
 use crate::model::project::stage::cost::advance::logged_update::LoggedAdvanceCostUpdate;
 use crate::model::project::stage::id::StageId;
-use crate::model::project::stage::invalidating_task::InvalidatingStageTask;
+use crate::model::project::stage::invalidating_by_project_id::InvalidatingByProjectId;
 use crate::state::AppState;
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, web};
 use serde::Deserialize;
-use uuid::Uuid;
 
 #[derive(Deserialize)]
 pub struct UpdateCostDto {
@@ -21,25 +19,24 @@ pub struct UpdateCostDto {
 pub async fn patch(
     state: web::Data<AppState>,
     request: HttpRequest,
-    path: web::Path<(Uuid, i32)>,
+    stage_id: StageId,
     body: Json<UpdateCostDto>,
 ) -> Result<HttpResponse, ApiError> {
     let user = request
         .user()
         .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
-    let (project_id, position) = path.into_inner();
-    let project_id_obj = ProjectId::new(project_id);
-    let stage_id = StageId::new(project_id_obj, position);
+    let project_id = stage_id.project_id();
+    let position = stage_id.position();
     AuditedTask::new(
         user.clone(),
         AuditAction::AdvanceCostUpdate {
             new_cost: body.cost,
         },
         format!("{project_id}:{position}"),
-        InvalidatingStageTask::new(
+        InvalidatingByProjectId::new(
             LoggedAdvanceCostUpdate::new(state.pool.clone(), stage_id, user, body.cost),
             state.stage_cache.clone(),
-            project_id_obj,
+            project_id,
         ),
     )
     .perform()

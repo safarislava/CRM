@@ -4,15 +4,13 @@ use crate::model::audit::AuditAction;
 use crate::model::audit::AuditedTask;
 use crate::model::contract::task::Task;
 use crate::model::project::file_content::FileContent;
-use crate::model::project::id::ProjectId;
 use crate::model::project::stage::act::logged_upload::LoggedActUpload;
 use crate::model::project::stage::id::StageId;
-use crate::model::project::stage::invalidating_task::InvalidatingStageTask;
+use crate::model::project::stage::invalidating_by_project_id::InvalidatingByProjectId;
 use crate::state::AppState;
 use actix_multipart::Multipart;
 use actix_web::{HttpRequest, HttpResponse, web};
 use futures_util::StreamExt;
-use uuid::Uuid;
 
 const MAX_FILE_SIZE: usize = 50 * 1_048_576;
 
@@ -38,14 +36,12 @@ async fn collect_bytes(
 pub async fn post(
     state: web::Data<AppState>,
     request: HttpRequest,
-    path: web::Path<(Uuid, i32)>,
+    stage_id: StageId,
     mut payload: Multipart,
 ) -> Result<HttpResponse, ApiError> {
     let user = request
         .user()
         .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
-    let (project_id, stage_position) = path.into_inner();
-    let stage_id = StageId::new(ProjectId::new(project_id), stage_position);
 
     let mut field = payload
         .next()
@@ -62,11 +58,13 @@ pub async fn post(
         .map(|kind| kind.mime_type().to_string())
         .unwrap_or_else(|| "application/octet-stream".to_string());
     let file = FileContent::new(filename.clone(), mime_type, data);
+    let project_id = stage_id.project_id();
+    let position = stage_id.position();
     AuditedTask::new(
         user.clone(),
         AuditAction::ActUpload { filename },
-        format!("{project_id}:{stage_position}"),
-        InvalidatingStageTask::new(
+        format!("{project_id}:{position}"),
+        InvalidatingByProjectId::new(
             LoggedActUpload::new(
                 state.pool.clone(),
                 state.storage.clone(),
@@ -75,7 +73,7 @@ pub async fn post(
                 file,
             ),
             state.stage_cache.clone(),
-            stage_id.project_id(),
+            project_id,
         ),
     )
     .perform()

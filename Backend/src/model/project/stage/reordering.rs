@@ -1,6 +1,7 @@
 use crate::model::contract::box_error::BoxError;
 use crate::model::contract::task::Task;
 use crate::model::project::id::ProjectId;
+use crate::model::project::stage::id::StageId;
 use sqlx::PgPool;
 use std::sync::Arc;
 
@@ -13,28 +14,12 @@ pub struct StageReordering {
 }
 
 impl StageReordering {
-    pub fn new(pool: Arc<PgPool>, project_id: ProjectId, from: i32, to: i32) -> Self {
+    pub fn new(pool: Arc<PgPool>, stage_id: StageId, to: i32) -> Self {
         Self {
             pool,
-            project_id,
-            parent_position: 0,
-            from,
-            to,
-        }
-    }
-
-    pub fn sub(
-        pool: Arc<PgPool>,
-        project_id: ProjectId,
-        parent_position: i32,
-        from: i32,
-        to: i32,
-    ) -> Self {
-        Self {
-            pool,
-            project_id,
-            parent_position,
-            from,
+            project_id: stage_id.project_id(),
+            parent_position: stage_id.parent_position(),
+            from: stage_id.position(),
             to,
         }
     }
