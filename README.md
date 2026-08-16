@@ -1,10 +1,13 @@
 # DailyCRM
 
-Система управления проектами для строительных/инженерных организаций. Позволяет вести проекты, разбивать их на этапы, отслеживать стоимость, дедлайны, подтверждения ГИП и оплаты, прикреплять файлы и акты, а также вести журнал комментариев по каждому этапу.
+Система управления проектами для строительных/инженерных организаций. Позволяет вести проекты, разбивать их на этапы и
+подэтапы, отслеживать стоимость, дедлайны, подтверждения ГИП и оплаты, прикреплять файлы и акты, а также вести журнал
+комментариев по каждому этапу.
 
 ## Стек
 
-**Backend** — Rust, Actix-web 4, PostgreSQL (sqlx), MinIO (S3-совместимый объектный storage), JWT (access + refresh токены), bcrypt, lettre (SMTP)
+**Backend** — Rust, Actix-web 4, PostgreSQL (sqlx), MinIO (S3-совместимый объектный storage), In-Memory Caching (с
+механизмом инвалидации), JWT (access + refresh токены), bcrypt, lettre (SMTP)
 
 **Frontend** — React 18, TypeScript, Redux Toolkit, Vite, SCSS
 
@@ -20,29 +23,31 @@
 
 ```
 Backend/src/
-├── endpoint/          # HTTP-обработчики, по одному файлу на маршрут
+├── endpoint/          # HTTP-обработчики и маршрутизация
+│   ├── extractor/     # Извлечение параметров пути (ProjectId, StageId)
 │   ├── auth/          # login, refresh, logout
 │   ├── users/         # регистрация и профиль
 │   ├── invites/       # создание инвайтов
-│   ├── projects/      # проекты, этапы, подэтапы, файлы, акты, комментарии
+│   ├── projects/      # проекты, этапы, файлы, акты, комментарии + media.rs
 │   └── admin/         # служебные эндпойнты администратора
 │
-├── model/
-│   ├── contract/      # Базовые контракты (Task, Value<T>, CommentText, BoxError)
-│   ├── project/       # Проекты, этапы, файлы, акты, комментарии + действия над ними
+├── model/             # Чистая доменная модель (без зависимостей от Actix)
+│   ├── contract/      # Базовые контракты (Task, Value<T>, Printer, BoxError)
+│   ├── project/       # Проекты, этапы, инвалидация кэша, файлы, акты, комментарии
 │   ├── user/          # Пользователи, роли, инвайты + действия с аккаунтами
 │   ├── session/       # Токены (Access/Refresh/Claims/Cookie) + отзывы и чеки
 │   ├── credential/    # Username, Password, хэшированные и валидированные обёртки
 │   ├── notification/  # Очередь уведомлений, дайджесты и рассылка почты
 │   ├── audit/         # AuditAction и декоратор логгирования AuditedTask
+│   ├── cache/         # In-Memory cache (MemoryCache) для инвалидации сводок
 │   └── schedule/      # Timetable, Schedule, TimeOfDay, PollInterval
 │
-├── middleware/        # JwtMiddleware, login_governor (rate limiting)
-├── state.rs           # AppState: PgPool, Storage, Mailer
+├── middleware/        # JwtMiddleware, AdminMiddleware, login_governor (rate limiting)
+├── state.rs           # AppState: PgPool, Storage, Mailer, Caches
 ├── storage.rs         # обёртка над aws-sdk-s3 (MinIO)
 ├── mail.rs            # Mailer через lettre/SMTP (SSL/TLS или STARTTLS)
 ├── jwt.rs             # подпись и верификация токенов
-├── routes.rs          # регистрация всех маршрутов
+├── routes.rs          # регистрация всех HTTP-маршрутов
 ├── db.rs              # пул соединений PostgreSQL
 └── cors.rs            # конфигурация CORS
 
