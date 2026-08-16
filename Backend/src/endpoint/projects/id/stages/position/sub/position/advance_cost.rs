@@ -1,10 +1,10 @@
 use crate::endpoint::api_error::ApiError;
 use crate::endpoint::auth_header::AuthHeader;
 use crate::model::contract::task::Task;
-use crate::model::project::invalidating_stage_task::InvalidatingStageTask;
-use crate::model::project::logged_advance_cost_update::LoggedAdvanceCostUpdate;
 use crate::model::project::project::ProjectId;
-use crate::model::project::stage::StageId;
+use crate::model::project::stage::cost::logged_advance_cost_update::LoggedAdvanceCostUpdate;
+use crate::model::project::stage::invalidating_stage_task::InvalidatingStageTask;
+use crate::model::project::stage::stage_id::StageId;
 use crate::state::AppState;
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, web};

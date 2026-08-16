@@ -1,7 +1,7 @@
 use crate::endpoint::api_error::ApiError;
 use crate::endpoint::json_deadline_media::JsonDeadlineMedia;
 use crate::model::contract::printer::Printer;
-use crate::model::project::deadlines::Deadlines;
+use crate::model::project::stage::deadline::deadlines::Deadlines;
 use crate::state::AppState;
 use actix_web::{HttpResponse, web};
 

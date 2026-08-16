@@ -1,9 +1,9 @@
 use crate::endpoint::api_error::ApiError;
 use crate::endpoint::json_stage_media::JsonStageMedia;
 use crate::model::contract::printer::Printer;
-use crate::model::project::cached_stage_summaries::CachedStageSummaries;
 use crate::model::project::project::ProjectId;
-use crate::model::project::stage_summaries::StageSummaries;
+use crate::model::project::stage::cached_stage_summaries::CachedStageSummaries;
+use crate::model::project::stage::stage_summaries::StageSummaries;
 use crate::state::AppState;
 use actix_web::{HttpResponse, web};
 use uuid::Uuid;

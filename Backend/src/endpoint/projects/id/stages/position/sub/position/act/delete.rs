@@ -1,10 +1,10 @@
 use crate::endpoint::api_error::ApiError;
 use crate::endpoint::auth_header::AuthHeader;
 use crate::model::contract::task::Task;
-use crate::model::project::attachment::AttachmentId;
-use crate::model::project::invalidating_stage_task::InvalidatingStageTask;
-use crate::model::project::logged_attachment_removal::LoggedAttachmentRemoval;
 use crate::model::project::project::ProjectId;
+use crate::model::project::stage::attachment::attachment::AttachmentId;
+use crate::model::project::stage::attachment::logged_attachment_removal::LoggedAttachmentRemoval;
+use crate::model::project::stage::invalidating_stage_task::InvalidatingStageTask;
 use crate::state::AppState;
 use actix_web::{HttpRequest, HttpResponse, web};
 use uuid::Uuid;

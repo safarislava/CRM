@@ -1,7 +1,7 @@
 use crate::endpoint::api_error::ApiError;
 use crate::model::contract::task::Task;
-use crate::model::project::attachment::AttachmentId;
-use crate::model::project::attachment_download::AttachmentDownload;
+use crate::model::project::stage::attachment::attachment::AttachmentId;
+use crate::model::project::stage::attachment::attachment_download::AttachmentDownload;
 use crate::state::AppState;
 use actix_web::{HttpResponse, web};
 use uuid::Uuid;

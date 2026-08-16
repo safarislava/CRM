@@ -1,0 +1,10 @@
+pub mod attachment;
+pub mod attachment_download;
+pub mod attachment_receipt;
+pub mod attachment_removal;
+pub mod attachment_removal_text;
+pub mod attachment_summaries;
+pub mod attachment_upload;
+pub mod attachment_upload_text;
+pub mod logged_attachment_removal;
+pub mod logged_attachment_upload;

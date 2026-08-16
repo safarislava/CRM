@@ -4,7 +4,7 @@ use crate::model::audit::AuditAction;
 use crate::model::audit::AuditedTask;
 use crate::model::contract::task::Task;
 use crate::model::project::project::ProjectId;
-use crate::model::project::stage_reordering::StageReordering;
+use crate::model::project::stage::stage_reordering::StageReordering;
 use crate::state::AppState;
 use actix_web::web::Json;
 use actix_web::{HttpRequest, HttpResponse, web};

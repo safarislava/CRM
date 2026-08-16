@@ -1,8 +1,8 @@
 use crate::endpoint::api_error::ApiError;
 use crate::model::contract::task::Task;
-use crate::model::project::invalidating_stage_task::InvalidatingStageTask;
 use crate::model::project::project::ProjectId;
-use crate::model::project::stage_appending::StageAppending;
+use crate::model::project::stage::invalidating_stage_task::InvalidatingStageTask;
+use crate::model::project::stage::stage_appending::StageAppending;
 use crate::state::AppState;
 use actix_web::web::Json;
 use actix_web::{HttpResponse, web};

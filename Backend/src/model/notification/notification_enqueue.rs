@@ -1,6 +1,6 @@
 use crate::model::contract::box_error::BoxError;
 use crate::model::contract::task::Task;
-use crate::model::project::stage::StageId;
+use crate::model::project::stage::stage_id::StageId;
 use sqlx::PgPool;
 use std::sync::Arc;
 
