@@ -4,6 +4,7 @@ use crate::model::audit::AuditAction;
 use crate::model::audit::AuditedTask;
 use crate::model::contract::task::Task;
 use crate::model::project::id::ProjectId;
+use crate::model::project::stage::invalidating_task::InvalidatingStageTask;
 use crate::model::project::stage::reordering::StageReordering;
 use crate::state::AppState;
 use actix_web::web::Json;
@@ -26,15 +27,15 @@ pub async fn patch(
         .user()
         .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
     let (project_id, position) = path.into_inner();
+    let project_id_obj = ProjectId::new(project_id);
     AuditedTask::new(
         user,
         AuditAction::StageReorder { to: body.to },
         format!("{project_id}:{position}"),
-        StageReordering::new(
-            state.pool.clone(),
-            ProjectId::new(project_id),
-            position,
-            body.to,
+        InvalidatingStageTask::new(
+            StageReordering::new(state.pool.clone(), project_id_obj, position, body.to),
+            state.stage_cache.clone(),
+            project_id_obj,
         ),
     )
     .perform()
