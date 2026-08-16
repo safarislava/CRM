@@ -41,3 +41,17 @@ impl fmt::Display for FormattedCost {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn formats_advance_cost_change_and_removal() {
+        let change = AdvanceCostChangeText::new(100000, Some(250000));
+        assert_eq!(change.text(), "Аванс изменён: 100 000 ₽ → 250 000 ₽");
+
+        let removal = AdvanceCostChangeText::new(100000, None);
+        assert_eq!(removal.text(), "Аванс удалён: 100 000 ₽");
+    }
+}
