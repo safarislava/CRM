@@ -3,22 +3,22 @@ use crate::model::contract::comment_text::CommentText;
 use crate::model::contract::task::Task;
 use crate::model::contract::value::Value;
 use crate::model::project::stage::comment::system_creation::SystemCommentCreation;
-use crate::model::project::stage::cost::final_change_text::FinalCostChangeText;
-use crate::model::project::stage::cost::final_receipt::StageFinalCostReceipt;
-use crate::model::project::stage::cost::final_update::FinalCostUpdate;
+use crate::model::project::stage::cost::advance::change_text::AdvanceCostChangeText;
+use crate::model::project::stage::cost::advance::receipt::StageAdvanceCostReceipt;
+use crate::model::project::stage::cost::advance::update::AdvanceCostUpdate;
 use crate::model::project::stage::id::StageId;
 use crate::model::user::id::UserId;
 use sqlx::PgPool;
 use std::sync::Arc;
 
-pub struct LoggedFinalCostUpdate {
+pub struct LoggedAdvanceCostUpdate {
     pool: Arc<PgPool>,
     stage_id: StageId,
     user_id: UserId,
     cost: Option<i32>,
 }
 
-impl LoggedFinalCostUpdate {
+impl LoggedAdvanceCostUpdate {
     pub fn new(pool: Arc<PgPool>, stage_id: StageId, user_id: UserId, cost: Option<i32>) -> Self {
         Self {
             pool,
@@ -30,19 +30,19 @@ impl LoggedFinalCostUpdate {
 }
 
 #[async_trait::async_trait]
-impl Task for LoggedFinalCostUpdate {
+impl Task for LoggedAdvanceCostUpdate {
     type Output = ();
 
     async fn perform(&self) -> Result<Self::Output, BoxError> {
-        let old = StageFinalCostReceipt::new(self.pool.clone(), self.stage_id.clone())
+        let old = StageAdvanceCostReceipt::new(self.pool.clone(), self.stage_id.clone())
             .value()
             .await?;
-        FinalCostUpdate::new(self.pool.clone(), self.stage_id.clone(), self.cost)
+        AdvanceCostUpdate::new(self.pool.clone(), self.stage_id.clone(), self.cost)
             .perform()
             .await?;
         if let Some(old_cost) = old {
             if self.cost != Some(old_cost) {
-                let text = FinalCostChangeText::new(old_cost, self.cost).text();
+                let text = AdvanceCostChangeText::new(old_cost, self.cost).text();
                 let _ = SystemCommentCreation::new(
                     self.pool.clone(),
                     self.stage_id.clone(),

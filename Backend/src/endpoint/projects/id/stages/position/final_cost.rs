@@ -4,7 +4,7 @@ use crate::model::audit::AuditAction;
 use crate::model::audit::AuditedTask;
 use crate::model::contract::task::Task;
 use crate::model::project::id::ProjectId;
-use crate::model::project::stage::cost::logged_final_update::LoggedFinalCostUpdate;
+use crate::model::project::stage::cost::r#final::logged_update::LoggedFinalCostUpdate;
 use crate::model::project::stage::id::StageId;
 use crate::state::AppState;
 use actix_web::web::Json;
