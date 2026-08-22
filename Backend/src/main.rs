@@ -16,16 +16,13 @@ use crate::model::cache::memory_cache::MemoryCache;
 use crate::model::notification::deadline_digest_notification::DeadlineDigestNotification;
 use crate::model::notification::dispatch::NotificationDispatch;
 use crate::model::schedule::contract::scheduled::Scheduled;
-use crate::model::schedule::poll_interval::PollInterval;
+use crate::model::schedule::cron_event::CronEvent;
 use crate::model::schedule::schedule::Schedule;
-use crate::model::schedule::time_of_day::TimeOfDay;
 use crate::model::schedule::timetable::Timetable;
 use crate::state::AppState;
 use crate::storage::Storage;
 use actix_web::{App, HttpServer, web};
-use chrono::NaiveTime;
 use std::sync::Arc;
-use std::time::Duration;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -44,14 +41,14 @@ async fn main() -> std::io::Result<()> {
         user_cache: MemoryCache::new(),
     });
     let deadline_schedule = Schedule::new(
-        Arc::new(TimeOfDay::new(NaiveTime::from_hms_opt(12, 0, 0).unwrap())),
+        Arc::new(CronEvent::new("0 0 12 * * * *").expect("Valid deadline cron expression")),
         Arc::new(DeadlineDigestNotification::new(
             pool.clone(),
             mailer.clone(),
         )),
     );
     let dispatch_schedule = Schedule::new(
-        Arc::new(PollInterval::new(Duration::from_mins(1))),
+        Arc::new(CronEvent::new("0 * * * * * *").expect("Valid dispatch cron expression")),
         Arc::new(NotificationDispatch::new(pool, mailer)),
     );
     let timetable = Timetable::new(vec![deadline_schedule, dispatch_schedule]);

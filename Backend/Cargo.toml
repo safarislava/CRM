@@ -27,3 +27,4 @@ tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json",
 tracing-appender = "0.2"
 tracing-actix-web = "0.7"
 bytes = "1.11.1"
+cron = "0.17.0"

@@ -33,9 +33,18 @@ impl Scheduled for Schedule {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::schedule::poll_interval::PollInterval;
     use std::sync::atomic::{AtomicUsize, Ordering};
     use std::time::Duration;
+
+    struct TestEvent(Duration);
+
+    #[async_trait::async_trait]
+    impl Event for TestEvent {
+        async fn fired(&self) -> Result<(), BoxError> {
+            actix_web::rt::time::sleep(self.0).await;
+            Ok(())
+        }
+    }
 
     struct CountTask(Arc<AtomicUsize>);
 
@@ -51,7 +60,7 @@ mod tests {
     #[actix_web::test]
     async fn executes_task_when_event_fires() {
         let counter = Arc::new(AtomicUsize::new(0));
-        let event = Arc::new(PollInterval::new(Duration::from_millis(10)));
+        let event = Arc::new(TestEvent(Duration::from_millis(10)));
         let task = Arc::new(CountTask(counter.clone()));
         let schedule = Arc::new(Schedule::new(event, task));
 
