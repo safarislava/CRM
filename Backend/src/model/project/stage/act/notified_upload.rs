@@ -1,7 +1,7 @@
 use crate::model::contract::box_error::BoxError;
 use crate::model::contract::task::Task;
 use crate::model::notification::enqueue::NotificationEnqueue;
-use crate::model::project::file_content::FileContent;
+use crate::model::project::contract::file::File;
 use crate::model::project::stage::act::upload::ActUpload;
 use crate::model::project::stage::id::StageId;
 use crate::storage::Storage;
@@ -12,7 +12,7 @@ pub struct NotifiedActUpload {
     pool: Arc<PgPool>,
     storage: Arc<Storage>,
     stage_id: StageId,
-    file: FileContent,
+    file: Arc<dyn File>,
 }
 
 impl NotifiedActUpload {
@@ -20,7 +20,7 @@ impl NotifiedActUpload {
         pool: Arc<PgPool>,
         storage: Arc<Storage>,
         stage_id: StageId,
-        file: FileContent,
+        file: Arc<dyn File>,
     ) -> Self {
         Self {
             pool,

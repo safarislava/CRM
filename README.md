@@ -40,7 +40,7 @@ Backend/src/
 │   ├── notification/  # Очередь уведомлений, дайджесты и рассылка почты
 │   ├── audit/         # AuditAction и декоратор логгирования AuditedTask
 │   ├── cache/         # In-Memory cache (MemoryCache) для инвалидации сводок
-│   └── schedule/      # Timetable, Schedule, TimeOfDay, PollInterval
+│   └── schedule/      # Timetable, Schedule, CronEvent
 │
 ├── middleware/        # JwtMiddleware, AdminMiddleware, login_governor (rate limiting)
 ├── state.rs           # AppState: PgPool, Storage, Mailer, Caches
