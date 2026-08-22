@@ -1137,12 +1137,16 @@ dependencies = [
  "cron",
  "dotenvy",
  "futures-util",
+ "http-body 1.0.1",
+ "http-body-util",
  "infer",
  "jsonwebtoken",
  "lettre",
  "serde",
  "serde_json",
  "sqlx",
+ "tokio",
+ "tokio-stream",
  "tokio-util",
  "tracing",
  "tracing-actix-web",
@@ -3881,6 +3885,7 @@ dependencies = [
  "futures-core",
  "pin-project-lite",
  "tokio",
+ "tokio-util",
 ]
 
 [[package]]

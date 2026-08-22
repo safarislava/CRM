@@ -28,3 +28,7 @@ tracing-appender = "0.2"
 tracing-actix-web = "0.7"
 bytes = "1.11.1"
 cron = "0.17.0"
+tokio = { version = "1", features = ["sync", "time"] }
+http-body-util = "0.1"
+http-body = "1.0"
+tokio-stream = { version = "0.1", features = ["sync"] }

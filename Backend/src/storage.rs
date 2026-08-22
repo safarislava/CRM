@@ -46,23 +46,27 @@ impl Storage {
         let _ = self.client.create_bucket().bucket(BUCKET).send().await;
     }
 
-    pub async fn upload(
+    pub async fn upload_stream(
         &self,
         key: &str,
-        data: Vec<u8>,
+        body: ByteStream,
         content_type: &str,
         filename: &str,
+        content_length: Option<i64>,
     ) -> Result<(), BoxError> {
         let disposition = format!("attachment; filename=\"{}\"", filename.replace('"', "\\\""));
-        self.client
+        let mut req = self
+            .client
             .put_object()
             .bucket(BUCKET)
             .key(key)
-            .body(ByteStream::from(data))
+            .body(body)
             .content_type(content_type)
-            .content_disposition(disposition)
-            .send()
-            .await?;
+            .content_disposition(disposition);
+        if let Some(length) = content_length {
+            req = req.content_length(length);
+        }
+        req.send().await?;
         Ok(())
     }
 
