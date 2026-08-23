@@ -1,11 +1,11 @@
 import {
-  createApi,
-  fetchBaseQuery,
   type BaseQueryFn,
+  createApi,
   type FetchArgs,
+  fetchBaseQuery,
   type FetchBaseQueryError,
 } from '@reduxjs/toolkit/query/react'
-import { setAccessToken, setInitialized, logout } from '../authSlice'
+import {logout, setAccessToken} from '../authSlice'
 
 const baseQuery = fetchBaseQuery({
   baseUrl: '/api',
