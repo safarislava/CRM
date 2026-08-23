@@ -1,27 +1,19 @@
-mod cors;
-mod db;
-mod endpoint;
-mod jwt;
-mod logger;
-mod mail;
-mod middleware;
-mod model;
-mod routes;
-mod state;
-mod storage;
-
-use crate::logger::{AppLogs, RollingLogs};
-use crate::mail::Mailer;
-use crate::model::cache::memory_cache::MemoryCache;
-use crate::model::notification::deadline_digest_notification::DeadlineDigestNotification;
-use crate::model::notification::dispatch::NotificationDispatch;
-use crate::model::schedule::contract::scheduled::Scheduled;
-use crate::model::schedule::cron_event::CronEvent;
-use crate::model::schedule::schedule::Schedule;
-use crate::model::schedule::timetable::Timetable;
-use crate::state::AppState;
-use crate::storage::Storage;
 use actix_web::{App, HttpServer, web};
+use dailycrm::cors;
+use dailycrm::db;
+use dailycrm::logger::AppLogs;
+use dailycrm::logger::RollingLogs;
+use dailycrm::mail::Mailer;
+use dailycrm::model::cache::memory_cache::MemoryCache;
+use dailycrm::model::notification::deadline_digest_notification::DeadlineDigestNotification;
+use dailycrm::model::notification::dispatch::NotificationDispatch;
+use dailycrm::model::schedule::contract::scheduled::Scheduled;
+use dailycrm::model::schedule::cron_event::CronEvent;
+use dailycrm::model::schedule::schedule::Schedule;
+use dailycrm::model::schedule::timetable::Timetable;
+use dailycrm::routes;
+use dailycrm::state::AppState;
+use dailycrm::storage::Storage;
 use std::sync::Arc;
 
 #[actix_web::main]
