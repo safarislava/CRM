@@ -1,4 +1,4 @@
-import React, { Component, type ErrorInfo, type ReactNode } from 'react'
+import React, {Component, type ErrorInfo, type ReactNode} from 'react'
 import styles from './ErrorBoundary.module.scss'
 
 interface Props {
@@ -35,7 +35,7 @@ export default class ErrorBoundary extends Component<Props, State> {
         <div className={styles.container}>
           <h3 className={styles.title}>{this.props.fallbackTitle ?? 'Что-то пошло не так'}</h3>
           <p className={styles.description}>
-            Произошла непредвиденная ошибка интерфейса. Попробуйте обновить этот блок.
+            {this.state.error?.message || 'Произошла непредвиденная ошибка интерфейса. Попробуйте обновить этот блок.'}
           </p>
           <button className={styles.retryBtn} onClick={this.handleReset}>
             Попробовать снова
