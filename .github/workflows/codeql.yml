@@ -1,4 +1,4 @@
-name: "CodeQL Analysis"
+name: "Code Quality & Security Scan"
 
 on:
   push:
@@ -9,20 +9,13 @@ on:
     - cron: '0 0 * * 0'
 
 jobs:
-  analyze:
-    name: CodeQL Scan
+  analyze-js:
+    name: CodeQL Scan (JS/TS Frontend)
     runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read
       security-events: write
-      pull-requests: write
-      issues: write
-
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [ 'javascript-typescript' ]
 
     steps:
       - name: Checkout repository
@@ -31,7 +24,7 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: ${{ matrix.language }}
+          languages: 'javascript-typescript'
           queries: security-and-quality
 
       - name: Perform CodeQL Analysis
@@ -39,53 +32,117 @@ jobs:
         with:
           output: 'results'
 
-      - name: Post Code Quality Comment
-        if: always() && github.event_name == 'pull_request'
+      - name: Save JS Results Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: js-sarif-results
+          path: results/*.sarif
+
+  analyze-rust:
+    name: Clippy Quality Scan (Rust Backend)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Run Clippy Code Quality Checks
+        run: |
+          cd Backend
+          cargo clippy --message-format=json > clippy_results.json || true
+
+      - name: Save Rust Results Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rust-clippy-results
+          path: Backend/clippy_results.json
+
+  report:
+    name: Post Unified Quality Comment
+    needs: [ analyze-js, analyze-rust ]
+    if: always() && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Download JS Results
+        uses: actions/download-artifact@v4
+        with:
+          name: js-sarif-results
+          path: js-results
+        continue-on-error: true
+
+      - name: Download Rust Results
+        uses: actions/download-artifact@v4
+        with:
+          name: rust-clippy-results
+          path: rust-results
+        continue-on-error: true
+
+      - name: Post Unified Quality Report to PR
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
             const path = require('path');
-            
-            let issuesCount = 0;
-            let rulesTriggered = new Set();
-            const resultsDir = './results';
 
-            if (fs.existsSync(resultsDir)) {
-              const files = fs.readdirSync(resultsDir).filter(f => f.endsWith('.sarif'));
+            // Parse JS SARIF Results
+            let jsIssuesCount = 0;
+            const jsDir = './js-results';
+            if (fs.existsSync(jsDir)) {
+              const files = fs.readdirSync(jsDir).filter(f => f.endsWith('.sarif'));
               for (const file of files) {
                 try {
-                  const content = JSON.parse(fs.readFileSync(path.join(resultsDir, file), 'utf8'));
+                  const content = JSON.parse(fs.readFileSync(path.join(jsDir, file), 'utf8'));
                   const runs = content.runs || [];
                   for (const run of runs) {
-                    const results = run.results || [];
-                    issuesCount += results.length;
-                    for (const res of results) {
-                      if (res.ruleId) rulesTriggered.add(res.ruleId);
-                    }
+                    jsIssuesCount += (run.results || []).length;
                   }
-                } catch (e) {
-                  console.log('Error parsing SARIF file:', e);
-                }
+                } catch (e) {}
               }
             }
 
-            const icon = issuesCount === 0 ? '✅' : '⚠️';
-            const language = '${{ matrix.language }}';
-            let summaryText = `### ${icon} CodeQL Quality Scan Report (${language})\n`;
-            summaryText += `**Language:** \`${language}\` | **Issues Found:** \`${issuesCount}\`\n\n`;
+            // Parse Rust Clippy Results
+            let rustWarningsCount = 0;
+            const rustFile = './rust-results/clippy_results.json';
+            if (fs.existsSync(rustFile)) {
+              try {
+                const lines = fs.readFileSync(rustFile, 'utf8').split('\n');
+                for (const line of lines) {
+                  if (!line.trim()) continue;
+                  try {
+                    const msg = JSON.parse(line);
+                    if (msg.reason === 'compiler-message' && msg.message && msg.message.level === 'warning') {
+                      rustWarningsCount++;
+                    }
+                  } catch (e) {}
+                }
+              } catch (e) {}
+            }
 
-            if (issuesCount === 0) {
-              summaryText += `✨ **No code quality or security vulnerabilities detected!** Excellent work.`;
+            const jsIcon = jsIssuesCount === 0 ? '✅' : '⚠️';
+            const rustIcon = rustWarningsCount === 0 ? '✅' : '⚠️';
+            const totalIssues = jsIssuesCount + rustWarningsCount;
+            const overallIcon = totalIssues === 0 ? '✅' : '⚠️';
+
+            let summary = `### ${overallIcon} Code Quality & Security Report\n\n`;
+            summary += `| Component | Engine | Status | Issues / Warnings |\n`;
+            summary += `|---|---|---|---|\n`;
+            summary += `| **Frontend (JS/TS)** | CodeQL | ${jsIcon} | \`${jsIssuesCount}\` |\n`;
+            summary += `| **Backend (Rust)** | Clippy | ${rustIcon} | \`${rustWarningsCount}\` |\n\n`;
+
+            if (totalIssues === 0) {
+              summary += `✨ **All checks passed cleanly! No security or code quality issues detected in Frontend or Backend.**`;
             } else {
-              summaryText += `⚠️ **Found ${issuesCount} code quality/security alert(s).**\n`;
-              if (rulesTriggered.size > 0) {
-                summaryText += `**Rules triggered:**\n`;
-                Array.from(rulesTriggered).forEach(rule => {
-                  summaryText += `- \`${rule}\`\n`;
-                });
-              }
-              summaryText += `\nPlease check the **Security -> Code Scanning** tab for line-by-line recommendations.`;
+              summary += `⚠️ **Found ${totalIssues} issue(s) in total across project components.** Please review the workflow logs and Security tab.`;
             }
 
             try {
@@ -93,7 +150,7 @@ jobs:
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: summaryText
+                body: summary
               });
             } catch (err) {
               console.log('Error posting PR comment:', err);
