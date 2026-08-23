@@ -47,7 +47,12 @@ impl Task for DeadlineDigestNotification {
             let body = body.clone();
             async move { mailer.send(email, SUBJECT, body).await }
         });
-        futures_util::future::try_join_all(sends).await?;
+        let results = futures_util::future::join_all(sends).await;
+        for res in results {
+            if let Err(error) = res {
+                tracing::error!(error = %error, "Deadline digest email send failed for recipient");
+            }
+        }
         Ok(())
     }
 }
