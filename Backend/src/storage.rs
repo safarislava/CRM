@@ -46,6 +46,11 @@ impl Storage {
         let _ = self.client.create_bucket().bucket(BUCKET).send().await;
     }
 
+    pub async fn check_health(&self) -> Result<(), BoxError> {
+        self.client.head_bucket().bucket(BUCKET).send().await?;
+        Ok(())
+    }
+
     pub async fn upload_stream(
         &self,
         key: &str,
