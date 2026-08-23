@@ -20,7 +20,8 @@ impl Scheduled for Schedule {
     async fn run(&self) -> Result<(), BoxError> {
         loop {
             if let Err(error) = self.event.fired().await {
-                tracing::error!(error = %error, "Schedule event trigger error");
+                tracing::error!(error = %error, "Schedule event trigger error; retrying in 1s");
+                actix_web::rt::time::sleep(std::time::Duration::from_secs(1)).await;
                 continue;
             }
             if let Err(error) = self.task.perform().await {

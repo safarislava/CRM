@@ -8,6 +8,7 @@ use actix_web::web;
 pub fn configure(config: &mut web::ServiceConfig) {
     config.service(
         web::scope("/api")
+            .service(web::resource("/health").get(endpoint::health::get))
             .service(
                 web::resource("/auth/login")
                     .wrap(Governor::new(&login_governor()))

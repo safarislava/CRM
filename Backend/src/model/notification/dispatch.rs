@@ -32,9 +32,13 @@ impl Task for NotificationDispatch {
             );
         }
         for notification in notifications {
-            NotificationSend::new(self.pool.clone(), self.mailer.clone(), notification)
-                .perform()
-                .await?;
+            if let Err(error) =
+                NotificationSend::new(self.pool.clone(), self.mailer.clone(), notification)
+                    .perform()
+                    .await
+            {
+                tracing::error!(error = %error, "Notification dispatch failed for item");
+            }
         }
         Ok(())
     }

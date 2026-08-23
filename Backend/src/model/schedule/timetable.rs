@@ -1,7 +1,7 @@
 use crate::model::contract::box_error::BoxError;
 use crate::model::schedule::contract::scheduled::Scheduled;
 use crate::model::schedule::schedule::Schedule;
-use futures_util::future::try_join_all;
+use futures_util::future::join_all;
 
 pub struct Timetable {
     schedules: Vec<Schedule>,
@@ -16,7 +16,12 @@ impl Timetable {
 #[async_trait::async_trait]
 impl Scheduled for Timetable {
     async fn run(&self) -> Result<(), BoxError> {
-        try_join_all(self.schedules.iter().map(|s| s.run())).await?;
+        let futures = self.schedules.iter().map(|s| async move {
+            if let Err(error) = s.run().await {
+                tracing::error!(error = %error, "Schedule runner terminated unexpectedly");
+            }
+        });
+        join_all(futures).await;
         Ok(())
     }
 }
