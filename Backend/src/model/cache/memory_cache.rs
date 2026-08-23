@@ -1,37 +1,50 @@
 use crate::model::cache::contract::cache::Cache;
 use crate::model::contract::box_error::BoxError;
 use async_trait::async_trait;
-use std::collections::HashMap;
+use moka::future::Cache as MokaCache;
 use std::hash::Hash;
-use std::sync::Arc;
-use tokio::sync::RwLock;
 
 pub struct MemoryCache<K, V> {
-    items: Arc<RwLock<HashMap<K, V>>>,
+    items: MokaCache<K, V>,
 }
 
 impl<K, V> Clone for MemoryCache<K, V> {
     fn clone(&self) -> Self {
         Self {
-            items: Arc::clone(&self.items),
+            items: self.items.clone(),
         }
     }
 }
 
-impl<K, V> MemoryCache<K, V> {
+impl<K, V> MemoryCache<K, V>
+where
+    K: Eq + Hash + Send + Sync + 'static,
+    V: Clone + Send + Sync + 'static,
+{
     pub fn new() -> Self {
         Self {
-            items: Arc::new(RwLock::new(HashMap::new())),
+            items: MokaCache::builder().build(),
         }
     }
 
     #[allow(dead_code)]
-    pub fn with_items(items: Arc<RwLock<HashMap<K, V>>>) -> Self {
-        Self { items }
+    pub fn with_capacity(max_capacity: u64) -> Self {
+        Self {
+            items: MokaCache::builder().max_capacity(max_capacity).build(),
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn with_cache(cache: MokaCache<K, V>) -> Self {
+        Self { items: cache }
     }
 }
 
-impl<K, V> Default for MemoryCache<K, V> {
+impl<K, V> Default for MemoryCache<K, V>
+where
+    K: Eq + Hash + Send + Sync + 'static,
+    V: Clone + Send + Sync + 'static,
+{
     fn default() -> Self {
         Self::new()
     }
@@ -44,19 +57,16 @@ where
     V: Clone + Send + Sync + 'static,
 {
     async fn value(&self, key: &K) -> Result<Option<V>, BoxError> {
-        let guard = self.items.read().await;
-        Ok(guard.get(key).cloned())
+        Ok(self.items.get(key).await)
     }
 
     async fn save(&self, key: K, value: V) -> Result<(), BoxError> {
-        let mut guard = self.items.write().await;
-        guard.insert(key, value);
+        self.items.insert(key, value).await;
         Ok(())
     }
 
     async fn evict(&self, key: &K) -> Result<(), BoxError> {
-        let mut guard = self.items.write().await;
-        guard.remove(key);
+        self.items.invalidate(key).await;
         Ok(())
     }
 }

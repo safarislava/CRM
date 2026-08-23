@@ -32,3 +32,4 @@ tokio = { version = "1", features = ["sync", "time"] }
 http-body-util = "0.1"
 http-body = "1.0"
 tokio-stream = { version = "0.1", features = ["sync"] }
+moka = { version = "0.12", features = ["future"] }
