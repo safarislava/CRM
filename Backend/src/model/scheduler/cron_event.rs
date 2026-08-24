@@ -1,5 +1,5 @@
 use crate::model::contract::box_error::BoxError;
-use crate::model::schedule::contract::event::Event;
+use crate::model::scheduler::contract::event::Event;
 use chrono::Local;
 use cron::Schedule as CronSchedule;
 use std::str::FromStr;

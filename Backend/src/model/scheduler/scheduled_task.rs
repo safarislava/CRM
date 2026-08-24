@@ -1,22 +1,22 @@
 use crate::model::contract::box_error::BoxError;
 use crate::model::contract::task::Task;
-use crate::model::schedule::contract::event::Event;
-use crate::model::schedule::contract::scheduled::Scheduled;
+use crate::model::scheduler::contract::event::Event;
+use crate::model::scheduler::contract::schedule::Schedule;
 use std::sync::Arc;
 
-pub struct Schedule {
+pub struct ScheduledTask {
     event: Arc<dyn Event>,
     task: Arc<dyn Task<Output = ()> + Send + Sync>,
 }
 
-impl Schedule {
+impl ScheduledTask {
     pub fn new(event: Arc<dyn Event>, task: Arc<dyn Task<Output = ()> + Send + Sync>) -> Self {
         Self { event, task }
     }
 }
 
 #[async_trait::async_trait]
-impl Scheduled for Schedule {
+impl Schedule for ScheduledTask {
     async fn run(&self) -> Result<(), BoxError> {
         loop {
             if let Err(error) = self.event.fired().await {
@@ -63,7 +63,7 @@ mod tests {
         let counter = Arc::new(AtomicUsize::new(0));
         let event = Arc::new(TestEvent(Duration::from_millis(10)));
         let task = Arc::new(CountTask(counter.clone()));
-        let schedule = Arc::new(Schedule::new(event, task));
+        let schedule = Arc::new(ScheduledTask::new(event, task));
 
         let runner = schedule.clone();
         let handle = actix_web::rt::spawn(async move {

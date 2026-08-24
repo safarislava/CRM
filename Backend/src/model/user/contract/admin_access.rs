@@ -1,7 +1,7 @@
 use crate::endpoint::api_error::ApiError;
-use crate::model::user::admin::Admin;
+use crate::model::user::admin::authority::AdminAuthority;
 
 #[async_trait::async_trait]
 pub trait AdminAccess {
-    async fn admin(&self) -> Result<Admin, ApiError>;
+    async fn admin(&self) -> Result<AdminAuthority, ApiError>;
 }

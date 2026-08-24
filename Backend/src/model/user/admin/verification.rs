@@ -1,5 +1,5 @@
 use crate::endpoint::api_error::ApiError;
-use crate::model::user::admin::Admin;
+use crate::model::user::admin::authority::AdminAuthority;
 use crate::model::user::contract::admin_access::AdminAccess;
 use crate::model::user::id::UserId;
 use sqlx::PgPool;
@@ -18,7 +18,7 @@ impl VerificationAdmin {
 
 #[async_trait::async_trait]
 impl AdminAccess for VerificationAdmin {
-    async fn admin(&self) -> Result<Admin, ApiError> {
+    async fn admin(&self) -> Result<AdminAuthority, ApiError> {
         let is_admin = sqlx::query_scalar::<_, bool>(
             "SELECT EXISTS(SELECT 1 FROM user_roles WHERE user_id = $1 AND role = 'admin')",
         )
@@ -26,9 +26,8 @@ impl AdminAccess for VerificationAdmin {
         .fetch_one(self.pool.as_ref())
         .await
         .map_err(|e| ApiError::Internal(e.to_string()))?;
-
         if is_admin {
-            Ok(Admin::new(self.user_id))
+            Ok(AdminAuthority::new(self.user_id))
         } else {
             Err(ApiError::Forbidden(
                 "Access denied: user is not an administrator".to_string(),

@@ -17,5 +17,4 @@ pub mod roles_update;
 pub mod tokens_issuance;
 pub mod username_update;
 pub mod users;
-pub mod verification_admin;
 pub mod verification_protected;

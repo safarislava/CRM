@@ -7,10 +7,10 @@ use dailycrm::mail::Mailer;
 use dailycrm::model::cache::memory_cache::MemoryCache;
 use dailycrm::model::notification::deadline_digest_notification::DeadlineDigestNotification;
 use dailycrm::model::notification::dispatch::NotificationDispatch;
-use dailycrm::model::schedule::contract::scheduled::Scheduled;
-use dailycrm::model::schedule::cron_event::CronEvent;
-use dailycrm::model::schedule::schedule::Schedule;
-use dailycrm::model::schedule::timetable::Timetable;
+use dailycrm::model::scheduler::contract::schedule::Schedule;
+use dailycrm::model::scheduler::cron_event::CronEvent;
+use dailycrm::model::scheduler::scheduled_task::ScheduledTask;
+use dailycrm::model::scheduler::timetable::Timetable;
 use dailycrm::routes;
 use dailycrm::state::AppState;
 use dailycrm::storage::Storage;
@@ -32,14 +32,14 @@ async fn main() -> std::io::Result<()> {
         stage_cache: MemoryCache::new(),
         user_cache: MemoryCache::new(),
     });
-    let deadline_schedule = Schedule::new(
+    let deadline_schedule = ScheduledTask::new(
         Arc::new(CronEvent::new("0 0 12 * * * *").expect("Valid deadline cron expression")),
         Arc::new(DeadlineDigestNotification::new(
             pool.clone(),
             mailer.clone(),
         )),
     );
-    let dispatch_schedule = Schedule::new(
+    let dispatch_schedule = ScheduledTask::new(
         Arc::new(CronEvent::new("0 * * * * * *").expect("Valid dispatch cron expression")),
         Arc::new(NotificationDispatch::new(pool, mailer)),
     );

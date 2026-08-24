@@ -1,18 +1,18 @@
 use crate::model::contract::box_error::BoxError;
 use crate::model::contract::task::Task;
-use crate::model::user::admin::Admin;
+use crate::model::user::admin::authority::AdminAuthority;
 use sqlx::PgPool;
 use std::sync::Arc;
 use uuid::Uuid;
 
 pub struct UserDeletion {
     pool: Arc<PgPool>,
-    admin: Admin,
+    admin: AdminAuthority,
     target_user_id: Uuid,
 }
 
 impl UserDeletion {
-    pub fn new(pool: Arc<PgPool>, admin: Admin, target_user_id: Uuid) -> Self {
+    pub fn new(pool: Arc<PgPool>, admin: AdminAuthority, target_user_id: Uuid) -> Self {
         Self {
             pool,
             admin,
