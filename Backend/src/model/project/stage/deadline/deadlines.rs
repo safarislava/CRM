@@ -6,6 +6,9 @@ use sqlx::PgPool;
 use std::sync::Arc;
 use uuid::Uuid;
 
+use crate::model::project::id::ProjectId;
+use crate::model::project::stage::id::StageId;
+
 pub struct Deadlines {
     pool: Arc<PgPool>,
 }
@@ -40,10 +43,10 @@ impl<M: DeadlineMedia> Printer<M> for Deadlines {
         .fetch_all(self.pool.as_ref())
         .await?;
         for r in rows {
+            let stage_id =
+                StageId::new_substage(ProjectId::from(r.project_id), r.parent_position, r.position);
             media.add_deadline(
-                r.project_id,
-                r.parent_position,
-                r.position,
+                stage_id,
                 &r.title,
                 r.deadline,
                 r.completed,

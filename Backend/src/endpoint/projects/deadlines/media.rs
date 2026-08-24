@@ -1,4 +1,5 @@
 use crate::model::contract::deadline_media::DeadlineMedia;
+use crate::model::project::stage::id::StageId;
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 use uuid::Uuid;
@@ -28,9 +29,7 @@ pub struct JsonDeadlineMedia {
 impl DeadlineMedia for JsonDeadlineMedia {
     fn add_deadline(
         &mut self,
-        project_id: Uuid,
-        parent_position: i32,
-        position: i32,
+        stage_id: StageId,
         title: &str,
         deadline: Option<DateTime<Utc>>,
         completed: bool,
@@ -38,9 +37,9 @@ impl DeadlineMedia for JsonDeadlineMedia {
     ) {
         self.items.push(JsonDeadlineItem {
             stage_id: StageItemMedia {
-                project_id,
-                parent_position,
-                position,
+                project_id: stage_id.project_id().id(),
+                parent_position: stage_id.parent_position(),
+                position: stage_id.position(),
                 title: title.to_string(),
                 deadline,
                 completed,
@@ -53,17 +52,17 @@ impl DeadlineMedia for JsonDeadlineMedia {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::model::project::id::ProjectId;
 
     #[test]
     fn serializes_deadline_media_to_json() {
         let mut media = JsonDeadlineMedia::default();
-        let p_id = Uuid::nil();
+        let p_id = ProjectId::from(Uuid::nil());
+        let stage_id = StageId::new_substage(p_id, 0, 1);
         let now = Utc::now();
 
         media.add_deadline(
-            p_id,
-            0,
-            1,
+            stage_id,
             "Foundation Work",
             Some(now),
             false,
