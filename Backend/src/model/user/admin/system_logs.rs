@@ -57,13 +57,12 @@ impl SystemLogs {
             .and_then(|v| v.as_str())
             .unwrap_or("INFO")
             .to_uppercase();
-        if let Some(ref filter) = self.level_filter {
-            if !filter.is_empty()
-                && filter.to_uppercase() != "ALL"
-                && level != filter.to_uppercase()
-            {
-                return None;
-            }
+        if let Some(ref filter) = self.level_filter
+            && !filter.is_empty()
+            && filter.to_uppercase() != "ALL"
+            && level != filter.to_uppercase()
+        {
+            return None;
         }
         let message = parsed
             .get("fields")
@@ -71,14 +70,13 @@ impl SystemLogs {
             .and_then(|m| m.as_str())
             .unwrap_or(line)
             .to_string();
-        if let Some(ref q) = self.query {
-            if !q.is_empty() {
-                let q_lower = q.to_lowercase();
-                if !message.to_lowercase().contains(&q_lower)
-                    && !line.to_lowercase().contains(&q_lower)
-                {
-                    return None;
-                }
+        if let Some(ref q) = self.query
+            && !q.is_empty()
+        {
+            let q_lower = q.to_lowercase();
+            if !message.to_lowercase().contains(&q_lower) && !line.to_lowercase().contains(&q_lower)
+            {
+                return None;
             }
         }
         let timestamp = parsed

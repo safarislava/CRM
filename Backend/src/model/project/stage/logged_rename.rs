@@ -34,24 +34,20 @@ impl Task for LoggedStageRename {
     type Output = ();
 
     async fn perform(&self) -> Result<Self::Output, BoxError> {
-        let old = StageTitleReceipt::new(self.pool.clone(), self.stage_id.clone())
+        let old = StageTitleReceipt::new(self.pool.clone(), self.stage_id)
             .value()
             .await?;
-        StageRename::new(self.pool.clone(), self.stage_id.clone(), self.title.clone())
+        StageRename::new(self.pool.clone(), self.stage_id, self.title.clone())
             .perform()
             .await?;
-        if let Some(old_title) = old {
-            if old_title != self.title {
-                let text = RenameText::new(old_title, self.title.clone()).text();
-                let _ = SystemCommentCreation::new(
-                    self.pool.clone(),
-                    self.stage_id.clone(),
-                    self.user_id.clone(),
-                    text,
-                )
-                .perform()
-                .await;
-            }
+        if let Some(old_title) = old
+            && old_title != self.title
+        {
+            let text = RenameText::new(old_title, self.title.clone()).text();
+            let _ =
+                SystemCommentCreation::new(self.pool.clone(), self.stage_id, self.user_id, text)
+                    .perform()
+                    .await;
         }
         Ok(())
     }

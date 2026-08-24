@@ -40,24 +40,20 @@ impl Task for LoggedDeadlineUpdate {
     type Output = ();
 
     async fn perform(&self) -> Result<Self::Output, BoxError> {
-        let old = StageDeadlineReceipt::new(self.pool.clone(), self.stage_id.clone())
+        let old = StageDeadlineReceipt::new(self.pool.clone(), self.stage_id)
             .value()
             .await?;
-        DeadlineUpdate::new(self.pool.clone(), self.stage_id.clone(), self.deadline)
+        DeadlineUpdate::new(self.pool.clone(), self.stage_id, self.deadline)
             .perform()
             .await?;
-        if let Some(old_date) = old {
-            if self.deadline != Some(old_date) {
-                let text = DeadlineChangeText::new(old_date, self.deadline).text();
-                let _ = SystemCommentCreation::new(
-                    self.pool.clone(),
-                    self.stage_id.clone(),
-                    self.user_id.clone(),
-                    text,
-                )
-                .perform()
-                .await;
-            }
+        if let Some(old_date) = old
+            && self.deadline != Some(old_date)
+        {
+            let text = DeadlineChangeText::new(old_date, self.deadline).text();
+            let _ =
+                SystemCommentCreation::new(self.pool.clone(), self.stage_id, self.user_id, text)
+                    .perform()
+                    .await;
         }
         Ok(())
     }

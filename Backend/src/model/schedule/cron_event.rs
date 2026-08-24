@@ -19,11 +19,11 @@ impl CronEvent {
 impl Event for CronEvent {
     async fn fired(&self) -> Result<(), BoxError> {
         let now = Local::now();
-        if let Some(next) = self.schedule.upcoming(Local).next() {
-            if next > now {
-                let duration = (next - now).to_std()?;
-                actix_web::rt::time::sleep(duration).await;
-            }
+        if let Some(next) = self.schedule.upcoming(Local).next()
+            && next > now
+        {
+            let duration = (next - now).to_std()?;
+            actix_web::rt::time::sleep(duration).await;
         }
         Ok(())
     }
