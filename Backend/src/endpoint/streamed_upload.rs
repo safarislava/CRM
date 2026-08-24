@@ -54,12 +54,7 @@ pub async fn create_streamed_file(
                     }
                 }
                 Err(err) => {
-                    let _ = tx
-                        .send(Err(std::io::Error::new(
-                            std::io::ErrorKind::Other,
-                            err.to_string(),
-                        )))
-                        .await;
+                    let _ = tx.send(Err(std::io::Error::other(err.to_string()))).await;
                     break;
                 }
             }
