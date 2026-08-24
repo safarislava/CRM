@@ -3,11 +3,11 @@ use crate::model::user::contract::admin_access::AdminAccess;
 use crate::model::user::id::UserId;
 
 #[derive(Clone, Debug)]
-pub struct Admin {
+pub struct AdminAuthority {
     user_id: UserId,
 }
 
-impl Admin {
+impl AdminAuthority {
     pub fn new(user_id: UserId) -> Self {
         Self { user_id }
     }
@@ -18,8 +18,8 @@ impl Admin {
 }
 
 #[async_trait::async_trait]
-impl AdminAccess for Admin {
-    async fn admin(&self) -> Result<Admin, ApiError> {
+impl AdminAccess for AdminAuthority {
+    async fn admin(&self) -> Result<AdminAuthority, ApiError> {
         Ok(self.clone())
     }
 }

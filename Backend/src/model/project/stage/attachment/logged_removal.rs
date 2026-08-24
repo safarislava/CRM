@@ -40,22 +40,17 @@ impl Task for LoggedAttachmentRemoval {
     type Output = ();
 
     async fn perform(&self) -> Result<Self::Output, BoxError> {
-        let info = AttachmentReceipt::new(self.pool.clone(), self.attachment_id.clone())
+        let info = AttachmentReceipt::new(self.pool.clone(), self.attachment_id)
             .value()
             .await?;
-        AttachmentRemoval::new(
-            self.pool.clone(),
-            self.storage.clone(),
-            self.attachment_id.clone(),
-        )
-        .perform()
-        .await?;
+        AttachmentRemoval::new(self.pool.clone(), self.storage.clone(), self.attachment_id)
+            .perform()
+            .await?;
         if let Some((filename, stage, is_act)) = info {
             let text = AttachmentRemovalText::new(filename, is_act).text();
-            let _ =
-                SystemCommentCreation::new(self.pool.clone(), stage, self.user_id.clone(), text)
-                    .perform()
-                    .await;
+            let _ = SystemCommentCreation::new(self.pool.clone(), stage, self.user_id, text)
+                .perform()
+                .await;
         }
         Ok(())
     }

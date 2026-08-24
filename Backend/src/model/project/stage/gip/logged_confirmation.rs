@@ -34,22 +34,18 @@ impl Task for LoggedGipConfirmation {
     type Output = ();
 
     async fn perform(&self) -> Result<Self::Output, BoxError> {
-        let old = StageGipConfirmedReceipt::new(self.pool.clone(), self.stage_id.clone())
+        let old = StageGipConfirmedReceipt::new(self.pool.clone(), self.stage_id)
             .value()
             .await?;
-        NotifiedGipConfirmation::new(self.pool.clone(), self.stage_id.clone(), self.confirmed)
+        NotifiedGipConfirmation::new(self.pool.clone(), self.stage_id, self.confirmed)
             .perform()
             .await?;
         if old != Some(self.confirmed) {
             let text = GipConfirmationText::new(self.confirmed).text();
-            let _ = SystemCommentCreation::new(
-                self.pool.clone(),
-                self.stage_id.clone(),
-                self.user_id.clone(),
-                text,
-            )
-            .perform()
-            .await;
+            let _ =
+                SystemCommentCreation::new(self.pool.clone(), self.stage_id, self.user_id, text)
+                    .perform()
+                    .await;
         }
         Ok(())
     }

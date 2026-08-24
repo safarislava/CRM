@@ -39,12 +39,12 @@ impl Task for NotifiedActUpload {
         ActUpload::new(
             self.pool.clone(),
             self.storage.clone(),
-            self.stage_id.clone(),
+            self.stage_id,
             self.file.clone(),
         )
         .perform()
         .await?;
-        NotificationEnqueue::new(self.pool.clone(), self.stage_id.clone(), "act_uploaded")
+        NotificationEnqueue::new(self.pool.clone(), self.stage_id, "act_uploaded")
             .perform()
             .await
     }

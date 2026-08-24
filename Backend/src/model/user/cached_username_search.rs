@@ -31,7 +31,7 @@ where
         }
         let result = self.origin.found(username).await?;
         if let Some(user) = &result {
-            self.cache.save(key, user.clone()).await?;
+            self.cache.save(key, *user).await?;
         }
         Ok(result)
     }

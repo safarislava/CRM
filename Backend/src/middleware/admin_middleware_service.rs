@@ -1,6 +1,6 @@
+use crate::model::user::admin::verification::VerificationAdmin;
 use crate::model::user::contract::admin_access::AdminAccess;
 use crate::model::user::id::UserId;
-use crate::model::user::verification_admin::VerificationAdmin;
 use crate::state::AppState;
 use actix_web::dev::{Service, ServiceRequest, ServiceResponse, forward_ready};
 use actix_web::{Error, HttpMessage, web};

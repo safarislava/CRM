@@ -1,5 +1,5 @@
 use crate::model::contract::comment_text::CommentText;
-use std::fmt;
+use crate::model::project::stage::cost::formatted_cost::FormattedCost;
 
 pub struct FinalCostChangeText {
     old: i32,
@@ -25,22 +25,5 @@ impl CommentText for FinalCostChangeText {
                 FormattedCost(self.old)
             ),
         }
-    }
-}
-
-struct FormattedCost(i32);
-
-impl fmt::Display for FormattedCost {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let s = self.0.to_string();
-        let bytes = s.as_bytes();
-        let len = bytes.len();
-        for (i, &b) in bytes.iter().enumerate() {
-            if i > 0 && (len - i) % 3 == 0 {
-                write!(f, " ")?;
-            }
-            write!(f, "{}", b as char)?;
-        }
-        Ok(())
     }
 }

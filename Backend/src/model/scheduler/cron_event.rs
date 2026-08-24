@@ -1,5 +1,5 @@
 use crate::model::contract::box_error::BoxError;
-use crate::model::schedule::contract::event::Event;
+use crate::model::scheduler::contract::event::Event;
 use chrono::Local;
 use cron::Schedule as CronSchedule;
 use std::str::FromStr;
@@ -19,11 +19,11 @@ impl CronEvent {
 impl Event for CronEvent {
     async fn fired(&self) -> Result<(), BoxError> {
         let now = Local::now();
-        if let Some(next) = self.schedule.upcoming(Local).next() {
-            if next > now {
-                let duration = (next - now).to_std()?;
-                actix_web::rt::time::sleep(duration).await;
-            }
+        if let Some(next) = self.schedule.upcoming(Local).next()
+            && next > now
+        {
+            let duration = (next - now).to_std()?;
+            actix_web::rt::time::sleep(duration).await;
         }
         Ok(())
     }

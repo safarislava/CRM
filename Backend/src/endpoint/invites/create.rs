@@ -16,7 +16,7 @@ pub async fn post(
         .user()
         .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
     let invite = AuditedTask::new(
-        user.clone(),
+        user,
         AuditAction::InviteCreate,
         "invite",
         InviteCreation::new(state.pool.clone(), user),

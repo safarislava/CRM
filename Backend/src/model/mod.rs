@@ -4,6 +4,6 @@ pub mod contract;
 pub mod credential;
 pub mod notification;
 pub mod project;
-pub mod schedule;
+pub mod scheduler;
 pub mod session;
 pub mod user;

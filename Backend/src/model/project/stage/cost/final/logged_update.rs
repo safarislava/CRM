@@ -34,24 +34,20 @@ impl Task for LoggedFinalCostUpdate {
     type Output = ();
 
     async fn perform(&self) -> Result<Self::Output, BoxError> {
-        let old = StageFinalCostReceipt::new(self.pool.clone(), self.stage_id.clone())
+        let old = StageFinalCostReceipt::new(self.pool.clone(), self.stage_id)
             .value()
             .await?;
-        FinalCostUpdate::new(self.pool.clone(), self.stage_id.clone(), self.cost)
+        FinalCostUpdate::new(self.pool.clone(), self.stage_id, self.cost)
             .perform()
             .await?;
-        if let Some(old_cost) = old {
-            if self.cost != Some(old_cost) {
-                let text = FinalCostChangeText::new(old_cost, self.cost).text();
-                let _ = SystemCommentCreation::new(
-                    self.pool.clone(),
-                    self.stage_id.clone(),
-                    self.user_id.clone(),
-                    text,
-                )
-                .perform()
-                .await;
-            }
+        if let Some(old_cost) = old
+            && self.cost != Some(old_cost)
+        {
+            let text = FinalCostChangeText::new(old_cost, self.cost).text();
+            let _ =
+                SystemCommentCreation::new(self.pool.clone(), self.stage_id, self.user_id, text)
+                    .perform()
+                    .await;
         }
         Ok(())
     }

@@ -32,7 +32,7 @@ pub async fn post(
         .await?
         .ok_or(ApiError::NotFound("User not found".to_string()))?;
     let password = ValidPassword::new(RawPassword::new(body.password.clone()));
-    let hash = DbHash::new(state.pool.clone(), user.clone());
+    let hash = DbHash::new(state.pool.clone(), user);
     let verification = HashUserVerification::new(hash, password);
     let user = VerificationProtectedUser::new(user, verification);
     let (access, refresh) = TokenIssuance::new(state.pool.clone(), Box::new(user))

@@ -29,7 +29,7 @@ pub async fn patch(
     let position = stage_id.position();
     let title = body.title.trim().to_string();
     AuditedTask::new(
-        user.clone(),
+        user,
         AuditAction::StageRename {
             new_title: title.clone(),
         },

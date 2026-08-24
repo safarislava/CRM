@@ -1,20 +1,20 @@
 use crate::model::contract::box_error::BoxError;
-use crate::model::schedule::contract::scheduled::Scheduled;
-use crate::model::schedule::schedule::Schedule;
+use crate::model::scheduler::contract::schedule::Schedule;
+use crate::model::scheduler::scheduled_task::ScheduledTask;
 use futures_util::future::join_all;
 
 pub struct Timetable {
-    schedules: Vec<Schedule>,
+    schedules: Vec<ScheduledTask>,
 }
 
 impl Timetable {
-    pub fn new(schedules: Vec<Schedule>) -> Self {
+    pub fn new(schedules: Vec<ScheduledTask>) -> Self {
         Self { schedules }
     }
 }
 
 #[async_trait::async_trait]
-impl Scheduled for Timetable {
+impl Schedule for Timetable {
     async fn run(&self) -> Result<(), BoxError> {
         let futures = self.schedules.iter().map(|s| async move {
             if let Err(error) = s.run().await {

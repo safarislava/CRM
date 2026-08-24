@@ -34,23 +34,18 @@ impl Task for LoggedAdvancePaymentConfirmation {
     type Output = ();
 
     async fn perform(&self) -> Result<Self::Output, BoxError> {
-        let old =
-            StageAdvancePaymentConfirmedReceipt::new(self.pool.clone(), self.stage_id.clone())
-                .value()
-                .await?;
-        AdvancePaymentConfirmation::new(self.pool.clone(), self.stage_id.clone(), self.confirmed)
+        let old = StageAdvancePaymentConfirmedReceipt::new(self.pool.clone(), self.stage_id)
+            .value()
+            .await?;
+        AdvancePaymentConfirmation::new(self.pool.clone(), self.stage_id, self.confirmed)
             .perform()
             .await?;
         if old != Some(self.confirmed) {
             let text = AdvancePaymentConfirmationText::new(self.confirmed).text();
-            let _ = SystemCommentCreation::new(
-                self.pool.clone(),
-                self.stage_id.clone(),
-                self.user_id.clone(),
-                text,
-            )
-            .perform()
-            .await;
+            let _ =
+                SystemCommentCreation::new(self.pool.clone(), self.stage_id, self.user_id, text)
+                    .perform()
+                    .await;
         }
         Ok(())
     }

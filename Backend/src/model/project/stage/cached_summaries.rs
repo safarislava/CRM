@@ -43,20 +43,7 @@ where
             }
         };
         for item in &items {
-            media.add_stage(
-                item.project_id,
-                item.parent_position,
-                item.position,
-                &item.title,
-                item.deadline,
-                item.completed,
-                item.gip_confirmed,
-                item.advance_cost,
-                item.advance_confirmed,
-                item.final_cost,
-                item.final_confirmed,
-                item.has_act,
-            );
+            item.print(media);
         }
         Ok(())
     }
@@ -79,20 +66,21 @@ mod tests {
     impl Printer<CollectingStageMedia> for CountedStageOrigin {
         async fn print(&self, media: &mut CollectingStageMedia) -> Result<(), BoxError> {
             self.calls.fetch_add(1, Ordering::SeqCst);
-            media.add_stage(
-                self.project_id.id(),
-                0,
-                1,
-                "Design Phase",
-                None,
-                false,
-                true,
-                None,
-                false,
-                None,
-                false,
-                false,
-            );
+            StageSummaryItem {
+                project_id: self.project_id.id(),
+                parent_position: 0,
+                position: 1,
+                title: "Design Phase".to_string(),
+                deadline: None,
+                completed: false,
+                gip_confirmed: true,
+                advance_cost: None,
+                advance_confirmed: false,
+                final_cost: None,
+                final_confirmed: false,
+                has_act: false,
+            }
+            .print(media);
             Ok(())
         }
     }

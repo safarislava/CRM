@@ -33,7 +33,7 @@ pub async fn post(
     let project_id = stage_id.project_id();
     let position = stage_id.position();
     let id = AuditedTask::new(
-        user.clone(),
+        user,
         AuditAction::AttachmentUpload { filename },
         format!("{project_id}:{position}"),
         LoggedAttachmentUpload::new(

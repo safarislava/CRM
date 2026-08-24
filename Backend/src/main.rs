@@ -1,27 +1,19 @@
-mod cors;
-mod db;
-mod endpoint;
-mod jwt;
-mod logger;
-mod mail;
-mod middleware;
-mod model;
-mod routes;
-mod state;
-mod storage;
-
-use crate::logger::{AppLogs, RollingLogs};
-use crate::mail::Mailer;
-use crate::model::cache::memory_cache::MemoryCache;
-use crate::model::notification::deadline_digest_notification::DeadlineDigestNotification;
-use crate::model::notification::dispatch::NotificationDispatch;
-use crate::model::schedule::contract::scheduled::Scheduled;
-use crate::model::schedule::cron_event::CronEvent;
-use crate::model::schedule::schedule::Schedule;
-use crate::model::schedule::timetable::Timetable;
-use crate::state::AppState;
-use crate::storage::Storage;
 use actix_web::{App, HttpServer, web};
+use dailycrm::cors;
+use dailycrm::db;
+use dailycrm::logger::AppLogs;
+use dailycrm::logger::RollingLogs;
+use dailycrm::mail::Mailer;
+use dailycrm::model::cache::memory_cache::MemoryCache;
+use dailycrm::model::notification::deadline_digest_notification::DeadlineDigestNotification;
+use dailycrm::model::notification::dispatch::NotificationDispatch;
+use dailycrm::model::scheduler::contract::schedule::Schedule;
+use dailycrm::model::scheduler::cron_event::CronEvent;
+use dailycrm::model::scheduler::scheduled_task::ScheduledTask;
+use dailycrm::model::scheduler::timetable::Timetable;
+use dailycrm::routes;
+use dailycrm::state::AppState;
+use dailycrm::storage::Storage;
 use std::sync::Arc;
 
 #[actix_web::main]
@@ -40,14 +32,14 @@ async fn main() -> std::io::Result<()> {
         stage_cache: MemoryCache::new(),
         user_cache: MemoryCache::new(),
     });
-    let deadline_schedule = Schedule::new(
+    let deadline_schedule = ScheduledTask::new(
         Arc::new(CronEvent::new("0 0 12 * * * *").expect("Valid deadline cron expression")),
         Arc::new(DeadlineDigestNotification::new(
             pool.clone(),
             mailer.clone(),
         )),
     );
-    let dispatch_schedule = Schedule::new(
+    let dispatch_schedule = ScheduledTask::new(
         Arc::new(CronEvent::new("0 * * * * * *").expect("Valid dispatch cron expression")),
         Arc::new(NotificationDispatch::new(pool, mailer)),
     );

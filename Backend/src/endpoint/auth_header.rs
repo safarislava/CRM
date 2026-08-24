@@ -1,10 +1,10 @@
-use crate::model::user::admin::Admin;
+use crate::model::user::admin::authority::AdminAuthority;
 use crate::model::user::id::UserId;
 use actix_web::{HttpMessage, HttpRequest};
 
 pub trait AuthHeader {
     fn user(&self) -> Option<UserId>;
-    fn admin(&self) -> Option<Admin>;
+    fn admin(&self) -> Option<AdminAuthority>;
 }
 
 impl AuthHeader for HttpRequest {
@@ -12,7 +12,7 @@ impl AuthHeader for HttpRequest {
         self.extensions().get::<UserId>().cloned()
     }
 
-    fn admin(&self) -> Option<Admin> {
-        self.extensions().get::<Admin>().cloned()
+    fn admin(&self) -> Option<AdminAuthority> {
+        self.extensions().get::<AdminAuthority>().cloned()
     }
 }
