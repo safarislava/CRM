@@ -28,7 +28,7 @@ impl AdminAccess for VerificationAdmin {
         .map_err(|e| ApiError::Internal(e.to_string()))?;
 
         if is_admin {
-            Ok(Admin::new(self.user_id.clone()))
+            Ok(Admin::new(self.user_id))
         } else {
             Err(ApiError::Forbidden(
                 "Access denied: user is not an administrator".to_string(),

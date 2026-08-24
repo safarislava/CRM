@@ -30,7 +30,7 @@ pub async fn patch(
     let position = stage_id.position();
     let deadline_str = body.deadline.map(|d| d.to_rfc3339());
     AuditedTask::new(
-        user.clone(),
+        user,
         AuditAction::DeadlineUpdate {
             new_deadline: deadline_str,
         },

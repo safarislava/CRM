@@ -20,7 +20,7 @@ impl VerificationProtectedUser {
 impl ProtectedUser for VerificationProtectedUser {
     async fn unprotected(&self) -> Result<UserId, VerificationError> {
         match self.verification.status().await {
-            Ok(_) => Ok(self.user_id.clone()),
+            Ok(_) => Ok(self.user_id),
             Err(e) => Err(e),
         }
     }

@@ -27,11 +27,11 @@ impl Task for NotifiedGipConfirmation {
     type Output = ();
 
     async fn perform(&self) -> Result<Self::Output, BoxError> {
-        GipConfirmation::new(self.pool.clone(), self.stage_id.clone(), self.confirmed)
+        GipConfirmation::new(self.pool.clone(), self.stage_id, self.confirmed)
             .perform()
             .await?;
         if self.confirmed {
-            NotificationEnqueue::new(self.pool.clone(), self.stage_id.clone(), "work_complete")
+            NotificationEnqueue::new(self.pool.clone(), self.stage_id, "work_complete")
                 .perform()
                 .await?;
         }

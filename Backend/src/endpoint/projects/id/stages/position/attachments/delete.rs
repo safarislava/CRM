@@ -19,7 +19,7 @@ pub async fn delete(
         .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
     let (_, _, attachment_id) = path.into_inner();
     AuditedTask::new(
-        user.clone(),
+        user,
         AuditAction::AttachmentDelete {
             filename: attachment_id.to_string(),
         },

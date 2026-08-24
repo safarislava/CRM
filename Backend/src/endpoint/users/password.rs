@@ -27,7 +27,7 @@ pub async fn patch(
         .user()
         .ok_or(ApiError::Unauthorized("Unauthorized".to_string()))?;
     let current_password = ValidPassword::new(RawPassword::new(body.current_password.clone()));
-    let hash = DbHash::new(state.pool.clone(), user.clone());
+    let hash = DbHash::new(state.pool.clone(), user);
     let verification = HashUserVerification::new(hash, current_password);
     let user = VerificationProtectedUser::new(user, verification);
     let new_password = HashedPassword::new(ValidPassword::new(RawPassword::new(

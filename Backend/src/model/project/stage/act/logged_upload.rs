@@ -45,20 +45,15 @@ impl Task for LoggedActUpload {
         NotifiedActUpload::new(
             self.pool.clone(),
             self.storage.clone(),
-            self.stage_id.clone(),
+            self.stage_id,
             self.file.clone(),
         )
         .perform()
         .await?;
         let text = ActUploadText::new(self.file.name().to_string()).text();
-        let _ = SystemCommentCreation::new(
-            self.pool.clone(),
-            self.stage_id.clone(),
-            self.user_id.clone(),
-            text,
-        )
-        .perform()
-        .await;
+        let _ = SystemCommentCreation::new(self.pool.clone(), self.stage_id, self.user_id, text)
+            .perform()
+            .await;
         Ok(())
     }
 }

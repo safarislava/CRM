@@ -22,7 +22,7 @@ pub async fn delete(
     let (project_id, _position, act_id) = path.into_inner();
     let project_id_obj = ProjectId::new(project_id);
     AuditedTask::new(
-        user.clone(),
+        user,
         AuditAction::ActDelete,
         act_id,
         InvalidatingByProjectId::new(

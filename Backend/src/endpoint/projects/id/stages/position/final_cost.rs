@@ -28,7 +28,7 @@ pub async fn patch(
     let project_id = stage_id.project_id();
     let position = stage_id.position();
     AuditedTask::new(
-        user.clone(),
+        user,
         AuditAction::FinalCostUpdate {
             new_cost: body.cost,
         },

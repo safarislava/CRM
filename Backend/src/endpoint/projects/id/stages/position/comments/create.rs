@@ -30,7 +30,7 @@ pub async fn post(
     let project_id = stage_id.project_id();
     let position = stage_id.position();
     AuditedTask::new(
-        user.clone(),
+        user,
         AuditAction::CommentCreate { text: text.clone() },
         format!("{project_id}:{position}"),
         CommentCreation::new(state.pool.clone(), stage_id, user, text),
